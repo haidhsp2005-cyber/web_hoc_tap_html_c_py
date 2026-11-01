@@ -1,12 +1,13 @@
 import os
 import sys
 import shutil
+import tempfile
 
 IS_VERCEL = bool(os.environ.get("VERCEL"))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 if IS_VERCEL:
-    DATA_DIR = "/tmp/data"
+    DATA_DIR = os.path.join(tempfile.gettempdir(), "themis_data")
     os.makedirs(DATA_DIR, exist_ok=True)
     DB_PATH = os.path.join(DATA_DIR, "themis_edu.db")
     UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
@@ -14,10 +15,13 @@ if IS_VERCEL:
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     os.makedirs(TESTCASE_DIR, exist_ok=True)
 
-    # Copy pre-seeded DB from repository to writable /tmp
+    # Copy pre-seeded DB from repository to writable temp directory
     repo_db = os.path.join(BASE_DIR, "data", "themis_edu.db")
     if os.path.exists(repo_db) and not os.path.exists(DB_PATH):
-        shutil.copy2(repo_db, DB_PATH)
+        try:
+            shutil.copy2(repo_db, DB_PATH)
+        except Exception as e:
+            print(f"Notice copying repo db: {e}")
 else:
     DATA_DIR = os.path.join(BASE_DIR, "data")
     DB_PATH = os.path.join(DATA_DIR, "themis_edu.db")

@@ -17,15 +17,27 @@ from app.judge import parse_themis_zip, judge_cpp_code, judge_python_code, judge
 
 app = FastAPI(title="Themis Online Judge & Edu Platform")
 
-# Mount static files and templates
+# Mount static files safely and templates
 static_dir = os.path.join(BASE_DIR, "app", "static")
 templates_dir = os.path.join(BASE_DIR, "app", "templates")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+os.makedirs(static_dir, exist_ok=True)
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 templates = Jinja2Templates(directory=templates_dir)
+
+# Initialize DB on load to guarantee availability in Vercel Serverless
+try:
+    init_db()
+except Exception as e:
+    print(f"Notice initializing database: {e}")
 
 @app.on_event("startup")
 def on_startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Startup DB init: {e}")
 
 # ==================== PAGE ROUTES ====================
 
