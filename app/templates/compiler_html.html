@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}Trình Biên Dịch & Chạy Thử HTML / CSS / JS | Themis Edu{% endblock %}
+
+{% block head %}
+<!-- CodeMirror Core -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<!-- Languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+
+<!-- Autocomplete & Hints (IntelliSense) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
+
+<!-- Auto Close & Match Tags -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchtags.min.js"></script>
+
+<style>
+    .CodeMirror {
+        height: 100% !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+        .CodeMirror {
+            font-size: 13px;
+        }
+    }
+    /* Gợi ý code Popup đẹp chuẩn VS Code */
+    .CodeMirror-hints {
+        z-index: 100 !important;
+        background: #1e293b !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 13px !important;
+        padding: 4px !important;
+    }
+    .CodeMirror-hint {
+        color: #94a3b8 !important;
+        border-radius: 4px !important;
+        padding: 4px 10px !important;
+    }
+    li.CodeMirror-hint-active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+    }
+    /* Thanh kéo dãn chia đôi màn hình (Split Resizer) */
+    .resizer-bar-h {
+        width: 8px;
+        cursor: col-resize;
+        background-color: #334155;
+        transition: background-color 0.15s ease;
+        position: relative;
+        z-index: 20;
+    }
+    .resizer-bar-h:hover, .resizer-bar-h.is-dragging {
+        background-color: #3b82f6;
+    }
+    .resizer-bar-h::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 24px;
+        background-color: #94a3b8;
+        border-radius: 1px;
+    }
+    @media (max-width: 768px) {
+        .resizer-bar-h {
+            width: 100%;
+            height: 8px;
+            cursor: row-resize;
+        }
+        .resizer-bar-h::after {
+            width: 24px;
+            height: 2px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 flex flex-col h-full w-full overflow-hidden bg-slate-900 min-h-0">
+
+    <!-- Action Toolbar (Responsive for Desktop & Mobile) -->
+    <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex items-center justify-between text-white shadow-md z-10 shrink-0">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <span class="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center text-white text-sm shadow">
+                <i class="fa-brands fa-html5"></i>
+            </span>
+            <div>
+                <h1 class="text-xs sm:text-sm font-bold tracking-tight">Biên Dịch HTML5 / CSS3 / JS</h1>
+                <p class="text-[10px] text-slate-400 hidden sm:block">Chạy code tự do, tự động kiểm tra lỗi câu lệnh theo dòng</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5 sm:space-x-2">
+            <!-- Clear Button -->
+            <button onclick="clearCode()" title="Xóa trắng mã nguồn"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/80 hover:bg-rose-600 text-white transition-colors">
+                <i class="fa-solid fa-trash-can sm:mr-1"></i> <span class="hidden sm:inline">Xóa trắng</span>
+            </button>
+
+            <!-- Save File Button -->
+            <button onclick="saveFile()" title="Tải file .html về máy"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file .html</span>
+            </button>
+
+            <!-- Reset Template Button -->
+            <button onclick="resetTemplate()" title="Mẫu chuẩn"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+                <i class="fa-solid fa-rotate-left sm:mr-1"></i> <span class="hidden sm:inline">Mẫu mới</span>
+            </button>
+
+            <!-- Linter Button -->
+            <button onclick="checkHtmlSyntax()" 
+                    class="px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 transition-colors shadow">
+                <i class="fa-solid fa-bug sm:mr-1"></i> <span class="hidden sm:inline">Kiểm tra lỗi dòng</span>
+            </button>
+
+            <!-- Run Button -->
+            <button id="run-btn" onclick="renderOutput()" 
+                    class="px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/20 flex items-center">
+                <i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace: Split Editor & Preview with Draggable Resizer -->
+    <div id="split-container" class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 w-full relative select-none">
+
+        <!-- Editor Pane -->
+        <div id="editor-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 overflow-hidden">
+            <div class="bg-slate-800/90 px-4 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b border-slate-700/60 shrink-0">
+                <span><i class="fa-solid fa-code text-blue-400 mr-1.5"></i> Soạn thảo mã HTML & CSS</span>
+                <span class="text-[10px] text-slate-400 font-normal">Kéo thanh ở giữa để dãn rộng màn hình</span>
+            </div>
+            <div class="flex-1 overflow-hidden relative min-h-0" id="editor-wrapper">
+                <textarea id="html-code-area"></textarea>
+            </div>
+        </div>
+
+        <!-- Draggable Resizer Bar -->
+        <div id="drag-resizer" class="resizer-bar-h shrink-0" title="Nhấn giữ và kéo để thay đổi kích thước khung"></div>
+
+        <!-- Preview Pane -->
+        <div id="preview-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-white min-h-0 overflow-hidden">
+            <div class="bg-slate-100 px-4 py-1.5 text-[11px] font-bold text-slate-600 uppercase tracking-wider flex justify-between items-center border-b border-slate-200 shrink-0">
+                <span><i class="fa-solid fa-display text-emerald-600 mr-1.5"></i> Kết quả hiển thị (Live Preview)</span>
+                <button onclick="openInNewTab()" title="Mở trang toàn màn hình" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">
+                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở tab mới
+                </button>
+            </div>
+            <div class="flex-1 relative bg-white overflow-hidden min-h-0 w-full h-full flex flex-col">
+                <iframe id="preview-iframe" class="w-full flex-1 border-0 block bg-white" style="width: 100%; height: 100%; min-height: 100%;"></iframe>
+            </div>
+
+            <!-- Error Notification Banner (Báo sai dòng mấy) -->
+            <div id="error-banner" class="hidden bg-rose-50 border-t border-rose-200 p-3 max-h-40 overflow-y-auto text-xs text-rose-800 shrink-0">
+                <div class="font-bold flex items-center justify-between mb-1.5">
+                    <span class="flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-600"></i> Báo lỗi cú pháp câu lệnh theo dòng:</span>
+                    <button onclick="document.getElementById('error-banner').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="error-list" class="space-y-1"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const DEFAULT_HTML_TEMPLATE = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Web Của Tôi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1e293b;
+            margin: 0;
+            padding: 24px 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            color: #1e40af;
+            font-size: 22px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #334155;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        ul {
+            color: #334155;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Xin Chào Các Bạn Học Sinh! 🚀</h1>
+        <p>Đây là môi trường soạn thảo và chạy thử HTML & CSS trực tiếp. Khung xem trước có nền trắng sáng, chuẩn văn bản cho học sinh dễ đọc và thực hành.</p>
+        <ul>
+            <li>Học các thẻ văn bản: &lt;h1&gt;, &lt;p&gt;, &lt;b&gt;, &lt;i&gt;</li>
+            <li>Học tạo bảng &lt;table&gt; và danh sách &lt;ul&gt;, &lt;ol&gt;</li>
+            <li>Tự do thay đổi mã ở khung bên trái và bấm <b>"Chạy Web"</b> để xem kết quả!</li>
+        </ul>
+        <a href="#" class="btn" onclick="alert('Chúc các bạn học tốt môn Tin Học!')">Bấm vào đây để thử nghiệm</a>
+    </div>
+</body>
+</html>`;
+
+    let editor = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('html-code-area');
+        textarea.value = DEFAULT_HTML_TEMPLATE;
+
+        try {
+            editor = CodeMirror.fromTextArea(textarea, {
+                mode: 'htmlmixed',
+                theme: 'dracula',
+                lineNumbers: true,
+                lineWrapping: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                matchTags: { bothTags: true },
+                viewportMargin: Infinity,
+                extraKeys: {
+                    "Ctrl-Space": "autocomplete",
+                    "Alt-Space": "autocomplete"
+                }
+            });
+
+            // Tự động kích hoạt gợi ý thông minh khi đang gõ
+            editor.on("inputRead", function(cm, change) {
+                try {
+                    if (change.text[0] && /[a-zA-Z0-9_<\/\.\:]/.test(change.text[0])) {
+                        if (cm.showHint && (CodeMirror.hint.html || CodeMirror.hint.anyword)) {
+                            cm.showHint({
+                                completeSingle: false,
+                                hint: CodeMirror.hint.html || CodeMirror.hint.anyword
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Hint warning:', err);
+                }
+            });
+
+            // Auto render on code change with debounce
+            let timer = null;
+            editor.on('change', () => {
+                clearTimeout(timer);
+                timer = setTimeout(renderOutput, 600);
+            });
+
+            setTimeout(() => {
+                editor.refresh();
+                renderOutput();
+            }, 150);
+
+        } catch (err) {
+            console.error('Lỗi khởi tạo CodeMirror:', err);
+            // Fallback an toàn nếu thư viện gặp sự cố: dùng textarea chuẩn
+            textarea.style.display = 'block';
+            textarea.className = 'w-full h-full p-4 bg-slate-900 text-slate-100 font-mono text-sm leading-relaxed border-0 focus:outline-none resize-none';
+            editor = {
+                getValue: () => textarea.value,
+                setValue: (val) => { textarea.value = val; },
+                refresh: () => {}
+            };
+            textarea.addEventListener('input', () => {
+                renderOutput();
+            });
+            renderOutput();
+        }
+
+        // Initialize Draggable Split Resizer
+        initSplitResizer();
+    });
+
+    function initSplitResizer() {
+        const resizer = document.getElementById('drag-resizer');
+        const editorPane = document.getElementById('editor-pane');
+        const previewPane = document.getElementById('preview-pane');
+        const container = document.getElementById('split-container');
+        let isDragging = false;
+
+        // Editor Pane & Preview Pane style
+        if (window.innerWidth > 768) {
+            editorPane.style.width = '50%';
+            previewPane.style.width = '50%';
+        }
+        resizer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            resizer.classList.add('is-dragging');
+            document.body.style.cursor = window.innerWidth > 768 ? 'col-resize' : 'row-resize';
+            e.preventDefault();
+        });
+
+        // Touch support for phones and tablets
+        resizer.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            resizer.classList.add('is-dragging');
+        }, { passive: true });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            handleResize(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging || !e.touches.length) return;
+            handleResize(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                resizer.classList.remove('is-dragging');
+                document.body.style.cursor = 'default';
+                if (editor) editor.refresh();
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                resizer.classList.remove('is-dragging');
+                if (editor) editor.refresh();
+            }
+        });
+
+        function handleResize(clientX, clientY) {
+            const rect = container.getBoundingClientRect();
+            if (window.innerWidth > 768) {
+                // Horizontal resize on desktop
+                const offset = clientX - rect.left;
+                const total = rect.width;
+                const percentage = Math.max(15, Math.min(85, (offset / total) * 100));
+                editorPane.style.width = percentage + '%';
+                previewPane.style.width = (100 - percentage) + '%';
+            } else {
+                // Vertical resize on mobile
+                const offset = clientY - rect.top;
+                const total = rect.height;
+                const percentage = Math.max(15, Math.min(85, (offset / total) * 100));
+                editorPane.style.height = percentage + '%';
+                previewPane.style.height = (100 - percentage) + '%';
+            }
+            if (editor) editor.refresh();
+        }
+    }
+
+    function clearCode() {
+        if (confirm('Bạn có chắc chắn muốn xóa trắng toàn bộ mã nguồn không?')) {
+            editor.setValue('');
+            renderOutput();
+            document.getElementById('error-banner').classList.add('hidden');
+        }
+    }
+
+    function saveFile() {
+        if (!editor) return;
+        const code = editor.getValue();
+        if (!code.trim()) {
+            alert('Mã nguồn đang trống, không có nội dung để lưu!');
+            return;
+        }
+        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'trang_web.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function renderOutput() {
+        if (!editor) return;
+        const code = editor.getValue();
+        const iframe = document.getElementById('preview-iframe');
+        if (!iframe) return;
+
+        // Feedback nút bấm chạy
+        const runBtn = document.getElementById('run-btn');
+        if (runBtn) {
+            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang chạy...';
+            setTimeout(() => {
+                runBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> <span>Chạy Web</span>';
+            }, 300);
+        }
+
+        // Cập nhật iframe qua Blob URL an toàn và cách ly hoàn toàn
+        try {
+            const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+            if (iframe._lastBlobUrl) {
+                URL.revokeObjectURL(iframe._lastBlobUrl);
+            }
+            const blobUrl = URL.createObjectURL(blob);
+            iframe._lastBlobUrl = blobUrl;
+            iframe.src = blobUrl;
+        } catch (e) {
+            // Fallback document.write
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write(code);
+                doc.close();
+            } catch (err) {
+                iframe.srcdoc = code;
+            }
+        }
+    }
+
+    function resetTemplate() {
+        if (confirm('Bạn có muốn đặt lại mã nguồn về mẫu chuẩn ban đầu không?')) {
+            editor.setValue(DEFAULT_HTML_TEMPLATE);
+            renderOutput();
+            document.getElementById('error-banner').classList.add('hidden');
+        }
+    }
+
+    function openInNewTab() {
+        if (!editor) return;
+        const code = editor.getValue();
+        const win = window.open();
+        win.document.open();
+        win.document.write(code);
+        win.document.close();
+    }
+
+    async function checkHtmlSyntax() {
+        if (!editor) return;
+        const code = editor.getValue();
+        const banner = document.getElementById('error-banner');
+        const list = document.getElementById('error-list');
+
+        try {
+            const resp = await fetch('/api/run-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: 'html',
+                    source_code: code,
+                    custom_input: ''
+                })
+            });
+            const data = await resp.json();
+
+            banner.classList.remove('hidden');
+            if (data.syntax_errors && data.syntax_errors.length > 0) {
+                list.innerHTML = data.syntax_errors.map(err => `
+                    <div class="bg-white p-2 rounded border border-rose-200 flex items-start space-x-2">
+                        <span class="font-mono font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">
+                            Dòng ${err.line}
+                        </span>
+                        <span class="text-slate-800">${err.message}</span>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = `
+                    <div class="bg-emerald-50 text-emerald-800 p-2 rounded border border-emerald-200 font-bold flex items-center">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Cú pháp HTML hoàn hảo! Không phát hiện lỗi sai thẻ hoặc thiếu thẻ đóng.
+                    </div>
+                `;
+            }
+        } catch (e) {
+            alert('Lỗi kiểm tra cú pháp: ' + e.message);
+        }
+    }
+</script>
+{% endblock %}

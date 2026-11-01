@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Bảng Xếp Hạng Học Sinh - Themis Edu{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center">
+                <i class="fa-solid fa-trophy text-amber-500 mr-3"></i>
+                Bảng Xếp Hạng Thi Đua & Chuyên Đề
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Đánh giá thành tích học sinh: mỗi bài làm đúng được tối đa 10.0 điểm, xếp hạng theo chuyên đề và tổng điểm.
+            </p>
+        </div>
+
+        <!-- Topic Filter for Leaderboard -->
+        <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lọc:</span>
+            <div class="inline-flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm text-xs font-semibold">
+                <a href="/leaderboard" class="px-3 py-1.5 rounded-xl transition-all {% if current_topic == 'all' %}bg-blue-600 text-white shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                    Toàn hệ thống
+                </a>
+                {% for t in topics %}
+                <a href="/leaderboard?topic={{ t.slug }}" class="px-3 py-1.5 rounded-xl transition-all {% if current_topic == t.slug %}bg-blue-600 text-white shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                    {{ t.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Table Card -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="py-4 px-6 text-center w-20">Hạng</th>
+                    <th class="py-4 px-6">Học sinh</th>
+                    <th class="py-4 px-6">Lớp</th>
+                    <th class="py-4 px-6 text-center">Số bài hoàn thành (AC)</th>
+                    <th class="py-4 px-6 text-right">Tổng điểm</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% if ranking %}
+                    {% for r in ranking %}
+                    <tr class="hover:bg-blue-50/40 transition-colors {% if loop.index == 1 %}bg-amber-50/30{% endif %}">
+                        
+                        <!-- Rank Badge -->
+                        <td class="py-4 px-6 text-center">
+                            {% if loop.index == 1 %}
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-500 text-white font-extrabold shadow-sm shadow-amber-400/30 text-xs">
+                                    <i class="fa-solid fa-crown text-sm"></i>
+                                </span>
+                            {% elif loop.index == 2 %}
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-slate-300 to-slate-400 text-white font-extrabold shadow-sm text-xs">
+                                    2
+                                </span>
+                            {% elif loop.index == 3 %}
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600 to-amber-700 text-white font-extrabold shadow-sm text-xs">
+                                    3
+                                </span>
+                            {% else %}
+                                <span class="font-mono font-bold text-slate-400 text-xs">
+                                    #{{ loop.index }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Student Info -->
+                        <td class="py-4 px-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+                                    {{ r.student_name[0] }}
+                                </div>
+                                <div>
+                                    <span class="font-bold text-slate-900 block">{{ r.student_name }}</span>
+                                    <span class="text-xs text-slate-400 font-mono">@{{ r.username }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Class -->
+                        <td class="py-4 px-6">
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                {{ r.class_name or '11 Tin' }}
+                            </span>
+                        </td>
+
+                        <!-- AC count -->
+                        <td class="py-4 px-6 text-center">
+                            <span class="font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full text-xs border border-emerald-200">
+                                <i class="fa-solid fa-check mr-1"></i> {{ r.ac_problems }} bài AC
+                            </span>
+                        </td>
+
+                        <!-- Total score -->
+                        <td class="py-4 px-6 text-right">
+                            <span class="text-lg font-black text-blue-700">
+                                {{ r.total_score }}đ
+                            </span>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-inbox text-3xl mb-2 block text-slate-300"></i>
+                            Chưa có dữ liệu bài nộp nào cho chuyên đề này. Hãy là người đầu tiên làm bài!
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" class="bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Themis Edu - Nền Tảng Học & Thi Tin Học{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 bg-slate-50">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                
+                <!-- Brand / Logo -->
+                <div class="flex items-center space-x-3">
+                    <a href="/" class="flex items-center space-x-2">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                            <i class="fa-solid fa-code text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">THEMIS EDU</span>
+                            <span class="hidden sm:inline-block text-xs uppercase tracking-wider px-2 py-0.5 ml-1.5 rounded-full bg-blue-100 text-blue-700 font-semibold">Online Judge</span>
+                        </div>
+                    </a>
+
+                    <!-- Navigation Links (Desktop) -->
+                    <div class="hidden lg:flex ml-6 space-x-1 items-center">
+                        <a href="/" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/' %}text-blue-600 bg-blue-50/70{% else %}text-slate-600{% endif %}">
+                            <i class="fa-solid fa-book-bookmark mr-1"></i> Đề bài
+                        </a>
+                        <a href="/compile-html" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/compile-html' %}text-orange-600 bg-orange-50{% else %}text-slate-600{% endif %}">
+                            <i class="fa-brands fa-html5 text-orange-500 mr-1"></i> Chạy HTML/CSS
+                        </a>
+                        <a href="/run-cpp" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/run-cpp' %}text-blue-600 bg-blue-50{% else %}text-slate-600{% endif %}">
+                            <i class="fa-solid fa-code text-blue-500 mr-1"></i> Chạy C++
+                        </a>
+                        <a href="/run-python" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/run-python' %}text-amber-600 bg-amber-50{% else %}text-slate-600{% endif %}">
+                            <i class="fa-brands fa-python text-amber-500 mr-1"></i> Chạy Python
+                        </a>
+                        <a href="/leaderboard" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/leaderboard' %}text-blue-600 bg-blue-50/70{% else %}text-slate-600{% endif %}">
+                            <i class="fa-solid fa-trophy mr-1 text-amber-500"></i> Xếp Hạng
+                        </a>
+                        <a href="/teacher" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:bg-slate-100 {% if request.url.path == '/teacher' %}text-emerald-600 bg-emerald-50{% else %}text-slate-600{% endif %}">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1 text-emerald-600"></i> Up Themis
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Side: User Badge & Mobile Hamburger Menu Button -->
+                <div class="flex items-center space-x-2">
+                    <div class="hidden sm:flex items-center space-x-2 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-[10px] shadow-inner">
+                            HS
+                        </div>
+                        <span class="text-xs font-semibold text-slate-700" id="current-user-display">Học sinh 11 Tin</span>
+                    </div>
+
+                    <!-- Mobile Hamburger Button -->
+                    <button type="button" onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg" id="mobile-menu-icon"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown (All phones responsive) -->
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1.5 shadow-lg">
+            <a href="/" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/' %}text-blue-600 bg-blue-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-solid fa-book-bookmark mr-2 text-blue-500"></i> Danh sách Đề bài
+            </a>
+            <a href="/compile-html" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/compile-html' %}text-orange-600 bg-orange-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-brands fa-html5 mr-2 text-orange-500"></i> Biên dịch HTML & CSS
+            </a>
+            <a href="/run-cpp" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/run-cpp' %}text-blue-600 bg-blue-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-solid fa-code mr-2 text-blue-500"></i> Chạy C++ (GCC 14.2)
+            </a>
+            <a href="/run-python" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/run-python' %}text-amber-600 bg-amber-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-brands fa-python mr-2 text-amber-500"></i> Chạy Python 3.14
+            </a>
+            <a href="/leaderboard" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/leaderboard' %}text-blue-600 bg-blue-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-solid fa-trophy mr-2 text-amber-500"></i> Bảng Xếp Hạng
+            </a>
+            <a href="/teacher" class="block px-3 py-2 rounded-xl text-sm font-semibold transition-colors {% if request.url.path == '/teacher' %}text-emerald-600 bg-emerald-50{% else %}text-slate-700 hover:bg-slate-100{% endif %}">
+                <i class="fa-solid fa-cloud-arrow-up mr-2 text-emerald-600"></i> Quản Trị / Up Test Themis
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.className = 'fa-solid fa-xmark text-lg';
+            } else {
+                menu.classList.add('hidden');
+                icon.className = 'fa-solid fa-bars text-lg';
+            }
+        }
+    </script>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full flex flex-col min-h-0">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if request.url.path in ['/', '/leaderboard', '/teacher'] %}
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-16 text-center text-xs text-slate-500 w-full shrink-0">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="font-medium text-slate-700">Hệ Thống Chấm Bài & Luyện Thi Tin Học Trực Tuyến</p>
+            <p class="mt-1 text-slate-400">Hỗ trợ định dạng Test Themis, chấm C++, Python, kiểm tra lỗi dòng HTML & Xếp hạng chuyên đề.</p>
+        </div>
+    </footer>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

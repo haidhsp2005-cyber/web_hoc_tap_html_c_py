@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Danh Sách Đề Bài & Chuyên Đề - Themis Edu{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Dàn nút công cụ chạy mã & biên dịch trực tuyến (ĐẶT TRÊN CÙNG) -->
+    <div class="mb-4 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md border border-slate-800">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-bold flex items-center text-amber-300">
+                    <i class="fa-solid fa-laptop-code text-base mr-2"></i> Dàn Công Cụ Thực Hành &amp; Chạy Thử Code Trực Tuyến
+                </h3>
+                <p class="text-xs text-slate-300 mt-0.5">
+                    Hỗ trợ kiểm tra lỗi dòng HTML/CSS, môi trường chạy C++ GCC 14.2 và Python 3.14 đầy đủ gợi ý gõ code (IntelliSense)
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="/compile-html" class="inline-flex items-center text-xs font-bold px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white shadow-sm transition-all">
+                    <i class="fa-brands fa-html5 mr-1.5 text-sm"></i> Chạy HTML/CSS &amp; Live Preview
+                </a>
+                <a href="/run-cpp" class="inline-flex items-center text-xs font-bold px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all">
+                    <i class="fa-solid fa-code mr-1.5 text-sm"></i> Chạy C++ (GCC 14.2)
+                </a>
+                <a href="/run-python" class="inline-flex items-center text-xs font-bold px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white shadow-sm transition-all">
+                    <i class="fa-brands fa-python mr-1.5 text-sm"></i> Chạy Python 3.14
+                </a>
+                <a href="/leaderboard" class="inline-flex items-center text-xs font-bold px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 shadow-sm transition-all">
+                    <i class="fa-solid fa-trophy mr-1.5"></i> Xếp Hạng
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dàn nút chuyên đề (Lọc bài tập theo chủ đề) -->
+    <div class="mb-6 flex flex-wrap gap-2 items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center">
+            <i class="fa-solid fa-layer-group mr-1.5 text-blue-600"></i> Chuyên đề:
+        </span>
+        <a href="/" 
+           class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm {% if current_topic == 'all' %}bg-blue-600 text-white shadow-blue-500/25{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+            Tất cả bài tập
+        </a>
+        {% for t in topics %}
+        <a href="/?topic={{ t.slug }}" 
+           class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm {% if current_topic == t.slug %}bg-blue-600 text-white shadow-blue-500/25{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+            {% if t.category == 'web_dev' %}
+                <i class="fa-brands fa-html5 text-orange-500 mr-1.5"></i>
+            {% elif t.category == 'hsg_dp' %}
+                <i class="fa-solid fa-trophy text-amber-500 mr-1.5"></i>
+            {% else %}
+                <i class="fa-solid fa-code text-blue-500 mr-1.5"></i>
+            {% endif %}
+            {{ t.name }}
+            <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] {% if current_topic == t.slug %}bg-blue-800 text-blue-100{% else %}bg-white text-slate-500 border border-slate-200{% endif %}">
+                {{ t.problem_count }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- PHẦN ĐỀ BÀI (ĐEM CUỐI / BÊN DƯỚI DÀN NÚT) -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-800 flex items-center">
+            <i class="fa-solid fa-book-bookmark text-blue-600 mr-2"></i> Danh Sách Đề Bài Luyện Tập
+        </h2>
+        <span class="text-xs text-slate-500">Tổng cộng: <strong>{{ problems|length }}</strong> bài tập</span>
+    </div>
+
+    <!-- Problem Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for p in problems %}
+        <div class="bg-white rounded-2xl border border-slate-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group">
+            
+            <!-- Card Header -->
+            <div class="p-5 flex-1">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                        {{ p.code }}
+                    </span>
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                        {{ p.topic_name }}
+                    </span>
+                </div>
+
+                <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-2">
+                    {{ p.title }}
+                </h3>
+
+                <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
+                    {{ p.statement | striptags }}
+                </p>
+
+                <!-- Languages Supported -->
+                <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                    {% for lang in p.allowed_languages %}
+                        {% if lang == 'cpp' %}
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                                C++
+                            </span>
+                        {% elif lang == 'python' %}
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                                Python
+                            </span>
+                        {% elif lang == 'html' %}
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-orange-100 text-orange-800">
+                                <i class="fa-brands fa-html5 mr-1"></i> HTML / Web
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="bg-slate-50/70 border-t border-slate-100 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
+                <div class="flex items-center space-x-3">
+                    <span title="Thang điểm tối đa" class="font-semibold text-emerald-600">
+                        <i class="fa-solid fa-star mr-1"></i> {{ p.max_score }}đ
+                    </span>
+                    <span title="Số lượt giải đúng (AC)">
+                        <i class="fa-solid fa-circle-check text-blue-500 mr-1"></i> {{ p.ac_count }} đã giải
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    {% if 'html' in p.allowed_languages %}
+                    <a href="/compile-html" title="Mở môi trường chạy thử HTML độc lập"
+                       class="inline-flex items-center font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2.5 py-1.5 rounded-xl transition-colors">
+                        <i class="fa-brands fa-html5 mr-1"></i> Chạy thử
+                    </a>
+                    {% endif %}
+                    <a href="/problem/{{ p.code }}" 
+                       class="inline-flex items-center font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl transition-colors shadow-sm shadow-blue-500/20">
+                        Làm bài &amp; Chấm <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

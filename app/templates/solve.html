@@ -1,0 +1,1088 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.code }} - {{ problem.title }} | Themis Edu{% endblock %}
+
+{% block head %}
+<!-- KaTeX for math formulas -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<!-- Marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- CodeMirror Core -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<!-- CodeMirror Languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+
+<!-- Autocomplete & Hints -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/xml-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
+
+<!-- Auto Close & Match Tags -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchtags.min.js"></script>
+
+<style>
+    .CodeMirror {
+        height: 100% !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+        .CodeMirror {
+            font-size: 13px;
+        }
+    }
+    .CodeMirror-hints {
+        z-index: 100 !important;
+        background: #1e293b !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 13px !important;
+        padding: 4px !important;
+    }
+    .CodeMirror-hint {
+        color: #94a3b8 !important;
+        border-radius: 4px !important;
+        padding: 4px 10px !important;
+    }
+    li.CodeMirror-hint-active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+    }
+    /* Thanh kéo chia đôi trái phải giữa Editor và Live Preview */
+    .resizer-bar-h {
+        width: 8px;
+        cursor: col-resize;
+        background-color: #334155;
+        transition: background-color 0.15s ease;
+        position: relative;
+        z-index: 20;
+    }
+    .resizer-bar-h:hover, .resizer-bar-h.is-dragging {
+        background-color: #3b82f6;
+    }
+    .resizer-bar-h::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 24px;
+        background-color: #94a3b8;
+        border-radius: 1px;
+    }
+    /* Thanh kéo chia trên dưới giữa Khu vực Code và Phần Đề bài ở cuối */
+    .resizer-bar-v {
+        height: 8px;
+        cursor: row-resize;
+        background-color: #334155;
+        transition: background-color 0.15s ease;
+        position: relative;
+        z-index: 20;
+    }
+    .resizer-bar-v:hover, .resizer-bar-v.is-dragging {
+        background-color: #3b82f6;
+    }
+    .resizer-bar-v::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 2px;
+        background-color: #94a3b8;
+        border-radius: 1px;
+    }
+    @media (max-width: 768px) {
+        .resizer-bar-h {
+            width: 100%;
+            height: 8px;
+            cursor: row-resize;
+        }
+        .resizer-bar-h::after {
+            width: 24px;
+            height: 2px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-900 w-full min-h-0 select-none">
+
+    <!-- DÀN NÚT TRÊN CÙNG (Thanh công cụ tác vụ: Ngôn ngữ, Xóa trắng, Lưu file, Chạy Web, Nộp bài) -->
+    <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 shadow-sm z-10 shrink-0">
+        
+        <!-- Left Title & Info -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <a href="/" class="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-700" title="Về danh sách đề bài">
+                <i class="fa-solid fa-arrow-left text-sm"></i>
+            </a>
+            <div class="h-4 w-px bg-slate-600 hidden sm:block"></div>
+            <div>
+                <span class="font-mono text-xs font-bold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800 mr-1.5">{{ problem.code }}</span>
+                <span class="text-xs sm:text-sm font-bold text-white">{{ problem.title }}</span>
+            </div>
+            <span class="text-[11px] text-slate-400 hidden lg:inline-block">({{ problem.topic_name }})</span>
+        </div>
+
+        <!-- DÀN NÚT CHỨC NĂNG CHÍNH -->
+        <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+            
+            <!-- Language Selector -->
+            <div class="flex items-center space-x-1.5 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-700 text-slate-200">
+                <i class="fa-solid fa-code text-xs text-blue-400"></i>
+                <select id="language-select" class="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer">
+                    {% for lang in problem.allowed_languages %}
+                        <option value="{{ lang }}" class="bg-slate-900 text-white" {% if loop.first %}selected{% endif %}>
+                            {% if lang == 'cpp' %}C++ (GCC 14.2)
+                            {% elif lang == 'python' %}Python 3.14
+                            {% elif lang == 'html' %}HTML5 &amp; CSS3{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Student Name Input -->
+            <div class="hidden xl:flex items-center space-x-1 bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-700 text-slate-200">
+                <i class="fa-solid fa-user text-xs text-emerald-400"></i>
+                <input type="text" id="student-name-input" value="Học sinh 11 Tin" placeholder="Tên học sinh..." 
+                       class="bg-transparent text-xs font-medium text-white w-24 focus:outline-none focus:w-32 transition-all">
+            </div>
+
+            <!-- Clear Code Button -->
+            <button onclick="clearProblemCode()" title="Xóa trắng mã nguồn"
+                    class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-xl border border-rose-800 text-rose-300 bg-rose-950/60 hover:bg-rose-900 transition-colors">
+                <i class="fa-solid fa-trash-can sm:mr-1"></i> <span class="hidden sm:inline">Xóa trắng</span>
+            </button>
+
+            <!-- Save Code Button -->
+            <button onclick="saveProblemCode()" title="Tải mã nguồn về máy"
+                    class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-xl border border-slate-700 text-slate-200 bg-slate-900 hover:bg-slate-700 transition-colors">
+                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file</span>
+            </button>
+
+            <!-- HTML Check Line Errors Button -->
+            <button id="html-check-btn" onclick="checkHtmlSyntaxLines()" title="Phân tích và phát hiện thẻ quên đóng hoặc sai dòng"
+                    class="hidden items-center text-xs font-semibold px-3 py-1 rounded-xl border border-amber-600 text-amber-200 bg-amber-950/70 hover:bg-amber-900 transition-colors">
+                <i class="fa-solid fa-bug mr-1"></i> <span class="hidden md:inline">Kiểm tra</span> lỗi dòng
+            </button>
+
+            <!-- Run Web / Run Test Button -->
+            <button id="run-btn" onclick="executeCurrentCode()" 
+                    class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-xl text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-sm">
+                <i class="fa-solid fa-play mr-1.5" id="run-btn-icon"></i> <span id="run-btn-text">Chạy thử</span>
+            </button>
+
+            <!-- Toggle Statement Button (Bật/Tắt đề bài ở cuối) -->
+            <button id="toggle-statement-btn" onclick="toggleStatementPane()" title="Ẩn hoặc hiện khung đề bài ở cuối"
+                    class="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-xl border border-slate-700 text-slate-200 bg-slate-900 hover:bg-slate-700 transition-colors">
+                <i class="fa-solid fa-book-open mr-1 text-blue-400"></i> <span id="toggle-statement-text">Đề bài (Cuối)</span>
+            </button>
+
+            <!-- Official Submit Button -->
+            <button id="submit-btn" onclick="submitSolution()" 
+                    class="inline-flex items-center text-xs font-extrabold px-3.5 py-1 rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all shadow-md shadow-blue-600/30">
+                <i class="fa-solid fa-paper-plane mr-1.5" id="submit-btn-icon"></i> <span>Nộp bài chấm điểm</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- KHU VỰC CHÍNH BÊN DƯỚI DÀN NÚT (Trên: Code Editor & Live Preview | Dưới cùng: Phần Đề bài) -->
+    <div id="vertical-split-container" class="flex-1 flex flex-col overflow-hidden min-h-0 w-full relative">
+
+        <!-- 1. KHU VỰC SOẠN THẢO VÀ KẾT QUẢ (Chiếm trọn không gian chính, chia đôi 50/50 cân đối) -->
+        <div id="code-preview-workspace" class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 w-full relative">
+
+            <!-- CỘT TRÁI: TRÌNH SOẠN THẢO CODE (CodeMirror) -->
+            <div id="editor-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 overflow-hidden bg-slate-900">
+                
+                <div class="bg-slate-800 px-3 py-1.5 flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 shrink-0">
+                    <span class="font-semibold text-slate-300 flex items-center">
+                        <i class="fa-solid fa-code mr-1.5 text-blue-400"></i> KHU VỰC SOẠN THẢO MÃ NGUỒN
+                    </span>
+                    <span class="text-[11px] text-slate-400 hidden sm:inline">Phím tắt: Ctrl+Space gợi ý gõ code</span>
+                </div>
+
+                <div class="flex-1 relative overflow-hidden min-h-0" id="editor-wrapper">
+                    <textarea id="code-editor-textarea" style="display: none;"></textarea>
+                </div>
+
+                <!-- Syntax Error Banner -->
+                <div id="syntax-error-banner" class="hidden bg-rose-950 border-t border-rose-800 p-2.5 max-h-32 overflow-y-auto text-xs text-rose-200 shrink-0">
+                    <div class="flex items-center justify-between font-bold text-rose-300 mb-1">
+                        <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i> Phát hiện lỗi cú pháp thẻ HTML:</span>
+                        <button onclick="document.getElementById('syntax-error-banner').classList.add('hidden')" class="text-rose-400 hover:text-white px-1">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <ul id="syntax-error-list" class="space-y-1 font-mono text-[11px] list-disc list-inside"></ul>
+                </div>
+
+            </div>
+
+            <!-- THANH TRƯỢT KÉO DÃN CHIA ĐÔI MÀN HÌNH GIỮA CODE VÀ LIVE PREVIEW -->
+            <div id="horizontal-resizer" class="resizer-bar-h"></div>
+
+            <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ (Live Preview cho HTML nền trắng, hoặc Console Output cho C++/Python) -->
+            <div id="preview-console-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 bg-white overflow-hidden">
+
+                <!-- VIEW A: HTML LIVE PREVIEW (Nền trắng tinh, cân đối) -->
+                <div id="html-live-preview-box" class="flex-1 flex flex-col h-full w-full min-h-0 bg-white">
+                    <div class="bg-slate-100 border-b border-slate-200 px-3 py-1.5 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
+                        <span class="flex items-center text-slate-800">
+                            <i class="fa-solid fa-desktop mr-1.5 text-orange-600"></i> KẾT QUẢ HIỂN THỊ WEB (LIVE PREVIEW)
+                        </span>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[11px] text-emerald-600 font-semibold"><i class="fa-solid fa-bolt mr-1"></i> Trực tiếp</span>
+                            <button onclick="openLivePreviewNewTab()" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded hover:bg-blue-50" title="Mở trong tab mới">
+                                <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở tab mới
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative bg-white overflow-hidden min-h-0 w-full h-full">
+                        <iframe id="live-preview-iframe" class="w-full h-full block bg-white border-0" sandbox="allow-scripts allow-modals"></iframe>
+                    </div>
+                </div>
+
+                <!-- VIEW B: C++ / PYTHON CONSOLE & CUSTOM INPUT -->
+                <div id="code-console-box" class="hidden flex-1 flex flex-col h-full w-full min-h-0 bg-slate-950 text-slate-200">
+                    <div class="bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs font-semibold text-slate-400 shrink-0">
+                        <span class="flex items-center text-slate-300">
+                            <i class="fa-solid fa-terminal mr-1.5 text-blue-400"></i> BẢNG ĐIỀU KHIỂN &amp; OUTPUT CHẠY THỬ
+                        </span>
+                        <span id="run-time-display" class="text-[11px] text-emerald-400 font-mono">0ms</span>
+                    </div>
+                    
+                    <div class="p-2 bg-slate-900/60 border-b border-slate-800 shrink-0">
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                            Dữ liệu đầu vào (Custom Input):
+                        </label>
+                        <textarea id="custom-input-box" rows="2" 
+                                  class="w-full text-xs font-mono p-2 bg-slate-950 text-slate-100 border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none" 
+                                  placeholder="Nhập test case thử nghiệm vào đây...">{{ problem.sample_input or '' }}</textarea>
+                    </div>
+
+                    <div class="flex-1 p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap select-text text-slate-100" id="output-area">
+                        <span class="text-slate-500 italic">Bấm "Chạy thử" để xem kết quả xuất ra màn hình tại đây...</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- THANH TRƯỢT KÉO DÃN DỌC (Kéo dãn độ cao giữa Khu vực Code và Phần Đề bài ở cuối) -->
+        <div id="vertical-resizer" class="resizer-bar-v"></div>
+
+        <!-- 2. PHẦN ĐỀ BÀI (ĐEM XUỐNG DƯỚI CÙNG / Ở CUỐI) -->
+        <div id="statement-pane" class="h-44 md:h-52 bg-white flex flex-col overflow-hidden min-h-0 border-t border-slate-300 shadow-lg shrink-0">
+            
+            <!-- Statement Header -->
+            <div class="border-b border-slate-200 px-4 py-1.5 bg-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-book-bookmark text-blue-600"></i>
+                    <span class="uppercase tracking-wider">PHẦN ĐỀ BÀI: {{ problem.code }} - {{ problem.title }}</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> {{ problem.time_limit_ms }}ms</span>
+                    <span class="font-bold text-emerald-600"><i class="fa-solid fa-star text-amber-500 mr-1"></i> {{ problem.max_score }}đ</span>
+                    <button onclick="toggleStatementPane()" class="text-slate-500 hover:text-slate-900 p-0.5 rounded" title="Thu nhỏ/Mở rộng đề bài">
+                        <i class="fa-solid fa-chevron-down" id="statement-chevron"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statement Content (Scrollable) -->
+            <div class="flex-1 p-4 overflow-y-auto select-text text-slate-800 leading-relaxed text-sm">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    
+                    <!-- Cột Đề bài chi tiết -->
+                    <div class="lg:col-span-2">
+                        <div class="text-sm statement-markdown leading-relaxed text-slate-700">{{ problem.statement | safe }}</div>
+                        
+                        {% if problem.input_format and 'html' not in problem.allowed_languages %}
+                        <div class="mt-3">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Dữ liệu vào (Input):</h4>
+                            <p class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-slate-800">{{ problem.input_format }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if problem.output_format and 'html' not in problem.allowed_languages %}
+                        <div class="mt-2">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Dữ liệu ra (Output):</h4>
+                            <p class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-slate-800">{{ problem.output_format }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Cột Tiêu chí chấm điểm hoặc Test mẫu -->
+                    <div>
+                        {% if problem.html_criteria %}
+                        <div class="p-3 rounded-2xl bg-orange-50 border border-orange-200 text-xs">
+                            <h4 class="text-xs font-bold text-orange-900 uppercase tracking-wider mb-2 flex items-center">
+                                <i class="fa-solid fa-list-check mr-1.5 text-orange-600"></i> Tiêu chí chấm điểm (10.0đ):
+                            </h4>
+                            <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                {% for c in problem.html_criteria %}
+                                <div class="flex items-start justify-between bg-white p-2 rounded-xl border border-orange-100 shadow-2xs">
+                                    <div>
+                                        <span class="font-bold text-slate-800">{{ c.name }}</span>
+                                        <p class="text-[11px] text-slate-500">{{ c.description }}</p>
+                                    </div>
+                                    <span class="font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded text-[11px] shrink-0 ml-2">+{{ c.points }}đ</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% elif problem.sample_input %}
+                        <div class="space-y-2 text-xs font-mono">
+                            <div>
+                                <span class="text-[11px] font-bold text-slate-500 block mb-1">Sample Input:</span>
+                                <pre class="bg-slate-900 text-emerald-400 p-2 rounded-xl overflow-x-auto">{{ problem.sample_input }}</pre>
+                            </div>
+                            <div>
+                                <span class="text-[11px] font-bold text-slate-500 block mb-1">Sample Output:</span>
+                                <pre class="bg-slate-900 text-amber-300 p-2 rounded-xl overflow-x-auto">{{ problem.sample_output }}</pre>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Judging Result Bottom Drawer -->
+    <div id="result-drawer" class="hidden absolute bottom-0 left-0 right-0 bg-white border-t-4 border-blue-600 shadow-2xl z-40 max-h-[85%] flex flex-col transition-all">
+        
+        <!-- Drawer Header -->
+        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-3">
+                <span id="result-status-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-sm">
+                    ĐANG CHẤM BÀI...
+                </span>
+                <span id="result-score-badge" class="text-lg font-black text-amber-400">
+                    -- / 10.0đ
+                </span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="closeResultDrawer()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Drawer Body -->
+        <div class="p-5 overflow-y-auto flex-1 space-y-4 select-text bg-slate-50 text-slate-800" id="result-content-body">
+            <!-- Injected dynamically via JS -->
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const PROBLEM_CODE = "{{ problem.code }}";
+    const ALLOWED_LANGS = {{ problem.allowed_languages | tojson }};
+    const SAMPLE_INPUT = `{{ problem.sample_input or '' }}`;
+    const SAMPLE_OUTPUT = `{{ problem.sample_output or '' }}`;
+    const HTML_CRITERIA = {{ (problem.html_criteria or []) | tojson }};
+
+    // Starter code templates
+    const CODE_TEMPLATES = {
+        cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    // freopen("${PROBLEM_CODE}.INP", "r", stdin);
+    // freopen("${PROBLEM_CODE}.OUT", "w", stdout);
+
+    long long a, b;
+    if (cin >> a >> b) {
+        cout << (a + b) << endl;
+    }
+    return 0;
+}`,
+        python: `import sys
+
+def solve():
+    data = sys.stdin.read().split()
+    if not data:
+        return
+    a, b = int(data[0]), int(data[1])
+    print(a + b)
+
+if __name__ == '__main__':
+    solve()`,
+        html: `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${PROBLEM_CODE}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1e293b;
+            padding: 24px;
+            margin: 0;
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 12px;
+        }
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        a {
+            color: #0284c7;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Giới Thiệu Bản Thân</h1>
+    <p>Xin chào mọi người! Mình là học sinh lớp 11 Tin, yêu thích lập trình và thiết kế web.</p>
+    
+    <h2>Sở thích của tôi:</h2>
+    <ul>
+        <li>Lập trình web với HTML & CSS</li>
+        <li>Giải bài tập thuật toán Tin học</li>
+        <li>Đọc sách công nghệ</li>
+    </ul>
+
+    <p>Ghé thăm <a href="https://google.com" target="_blank">trang thông tin tìm kiếm</a> để đọc thêm.</p>
+</body>
+</html>`
+    };
+
+    let editor = null;
+    let currentLiveBlobUrl = null;
+
+    // Initialize CodeMirror Editor
+    function initEditor() {
+        const langSelect = document.getElementById('language-select');
+        const currentLang = langSelect ? langSelect.value : (ALLOWED_LANGS[0] || 'cpp');
+
+        const initialMode = currentLang === 'cpp' ? 'text/x-c++src' : (currentLang === 'python' ? 'python' : 'htmlmixed');
+        const initialValue = CODE_TEMPLATES[currentLang] || '';
+
+        const textarea = document.getElementById('code-editor-textarea');
+
+        try {
+            editor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: initialMode,
+                theme: 'dracula',
+                tabSize: 4,
+                indentUnit: 4,
+                lineWrapping: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true,
+                matchTags: { bothTags: true },
+                matchBrackets: true,
+                extraKeys: {
+                    "Ctrl-Space": "autocomplete",
+                    "Cmd-Space": "autocomplete"
+                }
+            });
+
+            editor.setValue(initialValue);
+
+            // Auto show hint on typing
+            editor.on("inputRead", function(cm, change) {
+                if (change.origin === "+input") {
+                    const text = change.text[0];
+                    if (/[a-zA-Z0-9_<\.]/.test(text)) {
+                        cm.showHint({ completeSingle: false });
+                    }
+                }
+            });
+
+            // Live preview update on edit if HTML
+            editor.on("change", function() {
+                const lang = document.getElementById('language-select').value;
+                if (lang === 'html') {
+                    debounceLivePreview();
+                }
+            });
+
+            setTimeout(() => {
+                editor.refresh();
+                if (currentLang === 'html') {
+                    updateLivePreview();
+                }
+            }, 100);
+
+        } catch (e) {
+            console.error('CodeMirror init failed, falling back:', e);
+            textarea.style.display = 'block';
+            textarea.value = initialValue;
+            textarea.className = "w-full h-full p-4 bg-slate-900 text-slate-100 font-mono text-sm border-0 focus:outline-none resize-none";
+            editor = {
+                getValue: () => textarea.value,
+                setValue: (v) => { textarea.value = v; },
+                refresh: () => {},
+                setOption: () => {}
+            };
+            if (currentLang === 'html') updateLivePreview();
+        }
+
+        switchLanguageUI(currentLang);
+    }
+
+    // Switch Language UI mode
+    function switchLanguageUI(lang) {
+        const htmlCheckBtn = document.getElementById('html-check-btn');
+        const runBtnText = document.getElementById('run-btn-text');
+        const htmlPreviewBox = document.getElementById('html-live-preview-box');
+        const codeConsoleBox = document.getElementById('code-console-box');
+
+        if (lang === 'html') {
+            htmlCheckBtn.classList.remove('hidden');
+            htmlCheckBtn.classList.add('inline-flex');
+            runBtnText.innerText = "Chạy Web";
+            htmlPreviewBox.classList.remove('hidden');
+            htmlPreviewBox.classList.add('flex');
+            codeConsoleBox.classList.add('hidden');
+            codeConsoleBox.classList.remove('flex');
+            updateLivePreview();
+        } else {
+            htmlCheckBtn.classList.add('hidden');
+            htmlCheckBtn.classList.remove('inline-flex');
+            runBtnText.innerText = "Chạy thử";
+            htmlPreviewBox.classList.add('hidden');
+            htmlPreviewBox.classList.remove('flex');
+            codeConsoleBox.classList.remove('hidden');
+            codeConsoleBox.classList.add('flex');
+            document.getElementById('syntax-error-banner').classList.add('hidden');
+        }
+
+        if (editor && editor.refresh) {
+            editor.refresh();
+        }
+    }
+
+    // Language Change Listener
+    document.getElementById('language-select').addEventListener('change', function(e) {
+        const lang = e.target.value;
+        const mode = lang === 'cpp' ? 'text/x-c++src' : (lang === 'python' ? 'python' : 'htmlmixed');
+        if (editor && editor.setOption) {
+            editor.setOption('mode', mode);
+            editor.setValue(CODE_TEMPLATES[lang] || '');
+        }
+        switchLanguageUI(lang);
+    });
+
+    // Debounce Live Preview
+    let previewDebounceTimer = null;
+    function debounceLivePreview() {
+        clearTimeout(previewDebounceTimer);
+        previewDebounceTimer = setTimeout(updateLivePreview, 400);
+    }
+
+    // Update Live Preview Iframe
+    function updateLivePreview() {
+        const code = editor ? editor.getValue() : '';
+        const iframe = document.getElementById('live-preview-iframe');
+        if (!iframe) return;
+
+        if (currentLiveBlobUrl) {
+            URL.revokeObjectURL(currentLiveBlobUrl);
+        }
+        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        currentLiveBlobUrl = URL.createObjectURL(blob);
+        iframe.src = currentLiveBlobUrl;
+    }
+
+    function openLivePreviewNewTab() {
+        const code = editor ? editor.getValue() : '';
+        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    // Toggle Statement Pane at the bottom
+    let isStatementCollapsed = false;
+    let savedStatementHeight = "200px";
+    function toggleStatementPane() {
+        const pane = document.getElementById('statement-pane');
+        const chevron = document.getElementById('statement-chevron');
+        const toggleText = document.getElementById('toggle-statement-text');
+
+        if (!isStatementCollapsed) {
+            savedStatementHeight = pane.style.height || "200px";
+            pane.style.height = "36px";
+            chevron.className = "fa-solid fa-chevron-up";
+            if (toggleText) toggleText.innerText = "Hiện Đề bài";
+            isStatementCollapsed = true;
+        } else {
+            pane.style.height = savedStatementHeight;
+            chevron.className = "fa-solid fa-chevron-down";
+            if (toggleText) toggleText.innerText = "Đề bài (Cuối)";
+            isStatementCollapsed = false;
+        }
+        if (editor && editor.refresh) editor.refresh();
+    }
+
+    // Clear Code
+    function clearProblemCode() {
+        if (confirm('Bạn có chắc muốn xóa trắng toàn bộ mã nguồn bài làm không?')) {
+            if (editor) {
+                editor.setValue('');
+                editor.focus();
+            }
+            if (document.getElementById('language-select').value === 'html') {
+                updateLivePreview();
+            }
+        }
+    }
+
+    // Save Code to file
+    function saveProblemCode() {
+        const lang = document.getElementById('language-select').value;
+        const ext = lang === 'cpp' ? 'cpp' : (lang === 'python' ? 'py' : 'html');
+        const filename = `${PROBLEM_CODE}.${ext}`;
+        const content = editor ? editor.getValue() : '';
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Check HTML Syntax Lines
+    async function checkHtmlSyntaxLines() {
+        const code = editor ? editor.getValue() : '';
+        const banner = document.getElementById('syntax-error-banner');
+        const list = document.getElementById('syntax-error-list');
+
+        banner.classList.add('hidden');
+        list.innerHTML = '';
+
+        try {
+            const res = await fetch('/api/run-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: 'html',
+                    source_code: code,
+                    custom_input: ''
+                })
+            });
+            const data = await res.json();
+            const errors = data.syntax_errors || [];
+            const warnings = data.syntax_warnings || [];
+
+            if (errors.length === 0 && warnings.length === 0) {
+                alert('Tuyệt vời! Không phát hiện lỗi cú pháp thẻ HTML nào.');
+            } else {
+                banner.classList.remove('hidden');
+                errors.forEach(err => {
+                    const li = document.createElement('li');
+                    li.className = 'text-rose-300 font-semibold';
+                    li.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1 text-rose-400"></i> ${escapeHtml(err)}`;
+                    list.appendChild(li);
+                });
+                warnings.forEach(warn => {
+                    const li = document.createElement('li');
+                    li.className = 'text-amber-300';
+                    li.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i> ${escapeHtml(warn)}`;
+                    list.appendChild(li);
+                });
+            }
+        } catch (e) {
+            alert('Lỗi kết nối kiểm tra cú pháp: ' + e.message);
+        }
+    }
+
+    // Execute Current Code (Chạy thử)
+    async function executeCurrentCode() {
+        const lang = document.getElementById('language-select').value;
+        if (lang === 'html') {
+            updateLivePreview();
+            checkHtmlSyntaxLines();
+            return;
+        }
+
+        const runBtn = document.getElementById('run-btn');
+        const runIcon = document.getElementById('run-btn-icon');
+        const outputArea = document.getElementById('output-area');
+        const timeDisplay = document.getElementById('run-time-display');
+        const customInput = document.getElementById('custom-input-box').value;
+        const code = editor ? editor.getValue() : '';
+
+        runBtn.disabled = true;
+        runIcon.className = "fa-solid fa-spinner fa-spin mr-1.5";
+        outputArea.innerHTML = '<span class="text-blue-400 italic"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Đang biên dịch và thực thi...</span>';
+
+        try {
+            const res = await fetch('/api/run-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: lang,
+                    source_code: code,
+                    custom_input: customInput
+                })
+            });
+            const data = await res.json();
+
+            timeDisplay.innerText = `${data.time_ms || 0}ms`;
+
+            if (data.status === 'CE') {
+                outputArea.innerHTML = `<span class="text-rose-400 font-bold">[COMPILE ERROR]:</span>\n<span class="text-rose-300">${escapeHtml(data.error || 'Lỗi biên dịch')}</span>`;
+            } else if (data.status === 'RTE') {
+                outputArea.innerHTML = `<span class="text-amber-400 font-bold">[RUNTIME ERROR]:</span>\n<span class="text-amber-300">${escapeHtml(data.error || 'Lỗi lúc chạy')}</span>`;
+            } else if (data.status === 'TLE') {
+                outputArea.innerHTML = `<span class="text-orange-400 font-bold">[TIME LIMIT EXCEEDED]: Vượt quá thời gian cho phép</span>`;
+            } else {
+                outputArea.innerHTML = `<span class="text-emerald-400 font-bold">[OUTPUT]:</span>\n${escapeHtml(data.output || '(Không có dữ liệu xuất)')}`;
+            }
+        } catch (e) {
+            outputArea.innerHTML = `<span class="text-rose-400 font-bold">[LỖI HỆ THỐNG]:</span> ${escapeHtml(e.message)}`;
+        } finally {
+            runBtn.disabled = false;
+            runIcon.className = "fa-solid fa-play mr-1.5";
+        }
+    }
+
+    // Submit Solution for Official Grading (Nộp bài chấm điểm)
+    async function submitSolution() {
+        const lang = document.getElementById('language-select').value;
+        const code = editor ? editor.getValue() : '';
+        const studentName = document.getElementById('student-name-input') ? document.getElementById('student-name-input').value : 'Học sinh';
+
+        if (!code.trim()) {
+            alert('Vui lòng viết mã nguồn trước khi nộp bài chấm điểm!');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        const submitIcon = document.getElementById('submit-btn-icon');
+        const drawer = document.getElementById('result-drawer');
+        const statusBadge = document.getElementById('result-status-badge');
+        const scoreBadge = document.getElementById('result-score-badge');
+        const contentBody = document.getElementById('result-content-body');
+
+        submitBtn.disabled = true;
+        submitIcon.className = "fa-solid fa-spinner fa-spin mr-1.5";
+
+        drawer.classList.remove('hidden');
+        statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-sm";
+        statusBadge.innerText = "ĐANG CHẤM BÀI...";
+        scoreBadge.innerText = "-- / 10.0đ";
+        contentBody.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
+                <p class="font-bold text-slate-700">Hệ thống Themis Edu đang chấm bài làm của bạn...</p>
+                <p class="text-xs text-slate-400 mt-1">Đang đối soát cú pháp và các test case chuẩn...</p>
+            </div>
+        `;
+
+        try {
+            const res = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problem_code: PROBLEM_CODE,
+                    username: 'hocsinh',
+                    student_name: studentName,
+                    language: lang,
+                    source_code: code
+                })
+            });
+
+            const data = await res.json();
+
+            // Status Badge Formatting
+            const status = data.status || 'WA';
+            const score = typeof data.score === 'number' ? data.score.toFixed(1) : '0.0';
+            scoreBadge.innerText = `${score} / 10.0đ`;
+
+            if (status === 'AC') {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-600 text-white shadow-sm";
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> HOÀN THÀNH XUẤT SẮC (AC)';
+            } else if (status === 'PARTIAL') {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-white shadow-sm";
+                statusBadge.innerHTML = '<i class="fa-solid fa-circle-half-stroke mr-1"></i> ĐẠT ĐIỂM MỘT PHẦN';
+            } else if (status === 'CE') {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm";
+                statusBadge.innerHTML = '<i class="fa-solid fa-bug mr-1"></i> LỖI BIÊN DỊCH / CÚ PHÁP (CE)';
+            } else {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm";
+                statusBadge.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> ${status}`;
+            }
+
+            // Render Result Details based on Language
+            if (lang === 'html') {
+                renderHtmlGradingResults(data, contentBody);
+            } else {
+                renderCodeGradingResults(data, contentBody);
+            }
+
+        } catch (e) {
+            statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-700 text-white shadow-sm";
+            statusBadge.innerText = "LỖI HỆ THỐNG";
+            contentBody.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200">${escapeHtml(e.message)}</div>`;
+        } finally {
+            submitBtn.disabled = false;
+            submitIcon.className = "fa-solid fa-paper-plane mr-1.5";
+        }
+    }
+
+    // Render HTML Grading Details
+    function renderHtmlGradingResults(data, container) {
+        let html = '';
+
+        const errors = data.syntax_errors || [];
+        const warnings = data.syntax_warnings || [];
+
+        if (errors.length > 0 || warnings.length > 0) {
+            html += `
+                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                    <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wider mb-2 flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 mr-2 text-sm"></i> Chi tiết lỗi cú pháp thẻ theo dòng:
+                    </h4>
+                    <ul class="space-y-1.5 font-mono text-xs">
+            `;
+            errors.forEach(err => {
+                html += `<li class="text-rose-700 font-semibold"><i class="fa-solid fa-xmark mr-1 text-rose-500"></i> ${escapeHtml(err)}</li>`;
+            });
+            warnings.forEach(warn => {
+                html += `<li class="text-amber-700"><i class="fa-solid fa-circle-exclamation mr-1 text-amber-500"></i> ${escapeHtml(warn)}</li>`;
+            });
+            html += `</ul></div>`;
+        }
+
+        const criteria = data.criteria_results || [];
+        html += `
+            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-list-check text-blue-600 mr-1.5"></i> Kết quả kiểm tra tiêu chí cấu trúc web:</span>
+                    <span class="text-emerald-600 font-bold">${data.score ? data.score.toFixed(1) : 0} / 10.0 điểm</span>
+                </h4>
+                <div class="space-y-2">
+        `;
+
+        if (criteria.length === 0) {
+            html += `<p class="text-xs text-slate-500 italic">Không có danh mục tiêu chí cấu trúc cho đề bài này.</p>`;
+        } else {
+            criteria.forEach(c => {
+                const isPassed = c.passed;
+                html += `
+                    <div class="p-3 rounded-xl border ${isPassed ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'} flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid ${isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-500'}"></i>
+                                <span class="text-xs font-bold ${isPassed ? 'text-slate-900' : 'text-slate-700'}">${escapeHtml(c.name || '')}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 ml-5 mt-0.5">${escapeHtml(c.description || '')}</p>
+                            ${c.feedback ? `<p class="text-[11px] font-mono ml-5 mt-1 ${isPassed ? 'text-emerald-700' : 'text-rose-700 font-semibold'}">${escapeHtml(c.feedback)}</p>` : ''}
+                        </div>
+                        <span class="text-xs font-extrabold px-2 py-0.5 rounded ${isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} shrink-0 ml-3">
+                            ${isPassed ? '+' + c.points + 'đ' : '0đ'}
+                        </span>
+                    </div>
+                `;
+            });
+        }
+
+        html += `</div></div>`;
+        container.innerHTML = html;
+    }
+
+    // Render C++ / Python Test Results
+    function renderCodeGradingResults(data, container) {
+        let html = '';
+
+        if (data.compile_error) {
+            html += `
+                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                    <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wider mb-2">Thông báo lỗi biên dịch (Compile Error):</h4>
+                    <pre class="bg-slate-900 text-rose-300 p-3 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap">${escapeHtml(data.compile_error)}</pre>
+                </div>
+            `;
+            container.innerHTML = html;
+            return;
+        }
+
+        const tests = data.test_results || [];
+        const passedCount = tests.filter(t => t.status === 'AC').length;
+
+        html += `
+            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-vial-circle-check text-blue-600 mr-1.5"></i> Kết quả kiểm thử bộ Test Themis:
+                    </h4>
+                    <span class="text-xs font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                        Đúng ${passedCount} / ${tests.length} tests
+                    </span>
+                </div>
+                <div class="space-y-2">
+        `;
+
+        tests.forEach((t, idx) => {
+            const isAC = t.status === 'AC';
+            const statusColor = isAC ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300';
+            html += `
+                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <span class="font-mono text-xs font-bold px-2 py-0.5 rounded border ${statusColor}">
+                            ${t.status}
+                        </span>
+                        <span class="text-xs font-bold text-slate-800">Test #${idx + 1} (${t.folder_name || 'Test'})</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-xs text-slate-500 font-mono">
+                        <span><i class="fa-regular fa-clock mr-1"></i> ${t.time_ms || 0}ms</span>
+                        <span class="font-bold ${isAC ? 'text-emerald-600' : 'text-slate-400'}">${isAC ? '+1.0đ' : '0.0đ'}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.innerHTML = html;
+    }
+
+    function closeResultDrawer() {
+        document.getElementById('result-drawer').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Split Resizers Setup
+    function setupResizers() {
+        // 1. Horizontal Splitter (Editor vs Live Preview/Console)
+        const hResizer = document.getElementById('horizontal-resizer');
+        const editorPane = document.getElementById('editor-pane');
+        const previewPane = document.getElementById('preview-console-pane');
+        const hContainer = document.getElementById('code-preview-workspace');
+
+        let isDraggingH = false;
+
+        hResizer.addEventListener('mousedown', (e) => {
+            isDraggingH = true;
+            hResizer.classList.add('is-dragging');
+            document.body.style.cursor = window.innerWidth > 768 ? 'col-resize' : 'row-resize';
+            e.preventDefault();
+        });
+
+        // 2. Vertical Splitter (Code/Preview Workspace vs Statement Pane at the bottom)
+        const vResizer = document.getElementById('vertical-resizer');
+        const workspacePane = document.getElementById('code-preview-workspace');
+        const statementPane = document.getElementById('statement-pane');
+        const vContainer = document.getElementById('vertical-split-container');
+
+        let isDraggingV = false;
+
+        vResizer.addEventListener('mousedown', (e) => {
+            isDraggingV = true;
+            vResizer.classList.add('is-dragging');
+            document.body.style.cursor = 'row-resize';
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDraggingH) {
+                const rect = hContainer.getBoundingClientRect();
+                if (window.innerWidth > 768) {
+                    const offset = e.clientX - rect.left;
+                    const percent = (offset / rect.width) * 100;
+                    if (percent > 20 && percent < 80) {
+                        editorPane.style.width = `${percent}%`;
+                        previewPane.style.width = `${100 - percent}%`;
+                        if (editor && editor.refresh) editor.refresh();
+                    }
+                } else {
+                    const offset = e.clientY - rect.top;
+                    const percent = (offset / rect.height) * 100;
+                    if (percent > 20 && percent < 80) {
+                        editorPane.style.height = `${percent}%`;
+                        previewPane.style.height = `${100 - percent}%`;
+                        if (editor && editor.refresh) editor.refresh();
+                    }
+                }
+            }
+
+            if (isDraggingV) {
+                const rect = vContainer.getBoundingClientRect();
+                const totalHeight = rect.height;
+                const bottomOffset = rect.bottom - e.clientY;
+                if (bottomOffset > 40 && bottomOffset < totalHeight * 0.7) {
+                    statementPane.style.height = `${bottomOffset}px`;
+                    isStatementCollapsed = false;
+                    document.getElementById('statement-chevron').className = "fa-solid fa-chevron-down";
+                    if (editor && editor.refresh) editor.refresh();
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingH) {
+                isDraggingH = false;
+                hResizer.classList.remove('is-dragging');
+                document.body.style.cursor = '';
+                if (editor && editor.refresh) editor.refresh();
+            }
+            if (isDraggingV) {
+                isDraggingV = false;
+                vResizer.classList.remove('is-dragging');
+                document.body.style.cursor = '';
+                if (editor && editor.refresh) editor.refresh();
+            }
+        });
+    }
+
+    // Initialize on DOM Ready
+    document.addEventListener('DOMContentLoaded', () => {
+        initEditor();
+        setupResizers();
+    });
+</script>
+{% endblock %}

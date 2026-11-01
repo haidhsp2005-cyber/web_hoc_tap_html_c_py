@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Trình Chạy Mã {{ 'C++ (GCC 14.2)' if lang == 'cpp' else 'Python 3.14' }} Tự Do | Themis Edu{% endblock %}
+
+{% block head %}
+<!-- CodeMirror Core -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<!-- Languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+
+<!-- Autocomplete & Hints -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/anyword-hint.min.js"></script>
+
+<!-- Auto Close Brackets & Match -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+
+<style>
+    .CodeMirror {
+        height: 100% !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+        .CodeMirror {
+            font-size: 13px;
+        }
+    }
+    /* Gợi ý code Popup đẹp chuẩn VS Code */
+    .CodeMirror-hints {
+        z-index: 100 !important;
+        background: #1e293b !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        font-family: 'JetBrains Mono', Consolas, monospace !important;
+        font-size: 13px !important;
+        padding: 4px !important;
+    }
+    .CodeMirror-hint {
+        color: #94a3b8 !important;
+        border-radius: 4px !important;
+        padding: 4px 10px !important;
+    }
+    li.CodeMirror-hint-active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+    }
+    .resizer-bar-code {
+        width: 8px;
+        cursor: col-resize;
+        background-color: #334155;
+        transition: background-color 0.15s ease;
+        position: relative;
+        z-index: 20;
+    }
+    .resizer-bar-code:hover, .resizer-bar-code.is-dragging {
+        background-color: #3b82f6;
+    }
+    .resizer-bar-code::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 2px;
+        height: 24px;
+        background-color: #94a3b8;
+        border-radius: 1px;
+    }
+    @media (max-width: 768px) {
+        .resizer-bar-code {
+            width: 100%;
+            height: 8px;
+            cursor: row-resize;
+        }
+        .resizer-bar-code::after {
+            width: 24px;
+            height: 2px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-1 flex flex-col h-full w-full overflow-hidden bg-slate-900 min-h-0">
+
+    <!-- Action Toolbar (Desktop & Mobile Responsive) -->
+    <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex items-center justify-between text-white shadow-md z-10 shrink-0">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <span class="w-8 h-8 rounded-xl {% if lang == 'cpp' %}bg-blue-600{% else %}bg-amber-500 text-slate-950{% endif %} flex items-center justify-center font-black text-sm shadow">
+                {% if lang == 'cpp' %}&lt;/&gt;{% else %}<i class="fa-brands fa-python text-lg"></i>{% endif %}
+            </span>
+            <div>
+                <h1 class="text-xs sm:text-sm font-bold tracking-tight">
+                    {% if lang == 'cpp' %}Trình Biên Dịch & Chạy C++ (GCC 14.2){% else %}Trình Thông Dịch & Chạy Python 3.14{% endif %}
+                </h1>
+                <p class="text-[10px] text-slate-400 hidden sm:block">Chạy code tự do, nhập input tùy ý và xem output tức thì</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5 sm:space-x-2">
+            <!-- Clear Button -->
+            <button onclick="clearCode()" title="Xóa trắng mã nguồn"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/80 hover:bg-rose-600 text-white transition-colors">
+                <i class="fa-solid fa-trash-can sm:mr-1"></i> <span class="hidden sm:inline">Xóa trắng</span>
+            </button>
+
+            <!-- Save File Button -->
+            <button onclick="saveFile()" title="Tải file mã nguồn về máy"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">
+                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file .{{ 'cpp' if lang == 'cpp' else 'py' }}</span>
+            </button>
+
+            <!-- Reset Button -->
+            <button onclick="resetCode()" title="Mẫu ban đầu"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+                <i class="fa-solid fa-rotate-left sm:mr-1"></i> <span class="hidden sm:inline">Mẫu mới</span>
+            </button>
+
+            <!-- Language Switcher -->
+            <a href="{% if lang == 'cpp' %}/run-python{% else %}/run-cpp{% endif %}"
+               class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors">
+                <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>
+                <span>Chuyển sang {% if lang == 'cpp' %}Python{% else %}C++{% endif %}</span>
+            </a>
+
+            <!-- Run Button -->
+            <button id="run-btn" onclick="executeCode()" 
+                    class="px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-md shadow-blue-500/25 flex items-center">
+                <i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Code</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace (Responsive: Stack on Mobile, Side-by-side on Desktop) -->
+    <div id="split-code-container" class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 w-full relative select-none">
+
+        <!-- Left: Code Editor (Full Height / Top Half on Mobile) -->
+        <div id="code-editor-pane" class="w-full md:w-7/12 h-1/2 md:h-full flex flex-col min-h-0 overflow-hidden">
+            <div class="bg-slate-800/90 px-4 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b border-slate-700/60 shrink-0">
+                <span><i class="fa-solid fa-code text-blue-400 mr-1.5"></i> Trình soạn thảo mã nguồn</span>
+                <span class="text-[10px] text-slate-400 font-normal">Kéo thanh ở giữa để dãn rộng khung code</span>
+            </div>
+            <div class="flex-1 overflow-hidden min-h-0 relative">
+                <textarea id="code-area"></textarea>
+            </div>
+        </div>
+
+        <!-- Draggable Resizer Bar -->
+        <div id="drag-resizer-code" class="resizer-bar-code shrink-0" title="Nhấn giữ và kéo để thay đổi kích thước khung"></div>
+
+        <!-- Right: Input & Output Console -->
+        <div id="code-console-pane" class="w-full md:w-5/12 h-1/2 md:h-full flex flex-col bg-slate-950 text-slate-200 min-h-0 overflow-hidden">
+            
+            <!-- Standard Input (Dữ liệu vào) -->
+            <div class="h-2/5 flex flex-col border-b border-slate-800 min-h-0">
+                <div class="bg-slate-900 px-4 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b border-slate-800 shrink-0">
+                    <span><i class="fa-solid fa-keyboard text-amber-400 mr-1.5"></i> Dữ liệu vào (Standard Input - cin/stdin)</span>
+                    <button onclick="document.getElementById('input-area').value = ''" class="text-[10px] text-slate-400 hover:text-slate-200">Xóa input</button>
+                </div>
+                <textarea id="input-area" 
+                          class="flex-1 p-3 bg-slate-950 text-emerald-400 font-mono text-xs border-0 focus:outline-none resize-none"
+                          placeholder="Nhập dữ liệu đầu vào tại đây (nếu bài toán yêu cầu cin hoặc sys.stdin)..."></textarea>
+            </div>
+
+            <!-- Standard Output & Error (Kết quả ra) -->
+            <div class="h-3/5 flex flex-col min-h-0">
+                <div class="bg-slate-900 px-4 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b border-slate-800 shrink-0">
+                    <span class="flex items-center">
+                        <i class="fa-solid fa-terminal text-blue-400 mr-1.5"></i>
+                        <span>Kết quả đầu ra (Output Console)</span>
+                    </span>
+                    <span id="exec-time-badge" class="text-[10px] text-slate-400 font-mono hidden">
+                        <i class="fa-regular fa-clock mr-1"></i>0ms
+                    </span>
+                </div>
+                <div class="flex-1 p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap select-text" id="output-area">
+                    <span class="text-slate-600">// Bấm "Chạy Code" để xem kết quả tại đây...</span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const CURRENT_LANG = "{{ lang }}";
+
+    const DEFAULT_CPP = `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    // Chào mừng bạn đến với trình chạy C++ Themis Edu!
+    cout << "Xin chao cac ban hoc sinh chuyen Tin!" << endl;
+
+    int n;
+    cout << "Nhap so luong phan tu n: ";
+    if (cin >> n) {
+        vector<int> a(n);
+        cout << "Nhap " << n << " so nguyen: ";
+        for (int i = 0; i < n; i++) cin >> a[i];
+
+        sort(a.begin(), a.end());
+        cout << "Day sau khi sap xep tang dan: ";
+        for (int x : a) cout << x << " ";
+        cout << endl;
+    }
+    return 0;
+}`;
+
+    const DEFAULT_PYTHON = `# Chào mừng bạn đến với trình chạy Python Themis Edu!
+import sys
+
+print("Xin chào các bạn học sinh chuyên Tin!")
+
+line = sys.stdin.readline().strip()
+if line:
+    numbers = [int(x) for x in line.split()]
+    print(f"Tổng của các số vừa nhập là: {sum(numbers)}")
+    print(f"Số lớn nhất là: {max(numbers)}")
+else:
+    print("Mẹo: Nhập dãy số vào khung 'Dữ liệu vào (Input)' ở góc phải để tính toán!")
+`;
+
+    let editor = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const textarea = document.getElementById('code-area');
+        textarea.value = (CURRENT_LANG === 'cpp') ? DEFAULT_CPP : DEFAULT_PYTHON;
+
+        editor = CodeMirror.fromTextArea(textarea, {
+            mode: (CURRENT_LANG === 'cpp') ? 'text/x-c++src' : 'python',
+            theme: 'material-darker',
+            lineNumbers: true,
+            lineWrapping: true,
+            indentUnit: 4,
+            indentWithTabs: false,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            viewportMargin: Infinity,
+            extraKeys: {
+                "Ctrl-Space": "autocomplete",
+                "Alt-Space": "autocomplete"
+            }
+        });
+
+        // Tự động kích hoạt gợi ý thông minh khi đang gõ
+        editor.on("inputRead", function(cm, change) {
+            try {
+                if (change.text[0] && /[a-zA-Z0-9_\.]/.test(change.text[0])) {
+                    if (cm.showHint && CodeMirror.hint.anyword) {
+                        cm.showHint({
+                            completeSingle: false,
+                            hint: CodeMirror.hint.anyword
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn('Hint warning:', err);
+            }
+        });
+
+        // Set sample input
+        const inputArea = document.getElementById('input-area');
+        if (CURRENT_LANG === 'cpp') {
+            inputArea.value = "5\n42 15 88 3 27";
+        } else {
+            inputArea.value = "10 20 30 40 50";
+        }
+
+        // Initialize Draggable Split Resizer
+        initCodeSplitResizer();
+    });
+
+    function initCodeSplitResizer() {
+        const resizer = document.getElementById('drag-resizer-code');
+        const editorPane = document.getElementById('code-editor-pane');
+        const consolePane = document.getElementById('code-console-pane');
+        const container = document.getElementById('split-code-container');
+        let isDragging = false;
+
+        if (window.innerWidth > 768) {
+            editorPane.style.width = '58%';
+            consolePane.style.width = '42%';
+        }
+        resizer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            resizer.classList.add('is-dragging');
+            document.body.style.cursor = window.innerWidth > 768 ? 'col-resize' : 'row-resize';
+            e.preventDefault();
+        });
+
+        // Touch support for phones and tablets
+        resizer.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            resizer.classList.add('is-dragging');
+        }, { passive: true });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            handleResize(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging || !e.touches.length) return;
+            handleResize(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                resizer.classList.remove('is-dragging');
+                document.body.style.cursor = 'default';
+                if (editor) editor.refresh();
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            if (isDragging) {
+                isDragging = false;
+                resizer.classList.remove('is-dragging');
+                if (editor) editor.refresh();
+            }
+        });
+
+        function handleResize(clientX, clientY) {
+            const rect = container.getBoundingClientRect();
+            if (window.innerWidth > 768) {
+                const offset = clientX - rect.left;
+                const total = rect.width;
+                const percentage = Math.max(15, Math.min(85, (offset / total) * 100));
+                editorPane.style.width = percentage + '%';
+                consolePane.style.width = (100 - percentage) + '%';
+            } else {
+                const offset = clientY - rect.top;
+                const total = rect.height;
+                const percentage = Math.max(15, Math.min(85, (offset / total) * 100));
+                editorPane.style.height = percentage + '%';
+                consolePane.style.height = (100 - percentage) + '%';
+            }
+            if (editor) editor.refresh();
+        }
+    }
+
+    function clearCode() {
+        if (confirm('Bạn có chắc chắn muốn xóa trắng toàn bộ mã nguồn không?')) {
+            editor.setValue('');
+            document.getElementById('output-area').innerHTML = '<span class="text-slate-600">// Mã nguồn đã được xóa trắng.</span>';
+        }
+    }
+
+    function saveFile() {
+        if (!editor) return;
+        const code = editor.getValue();
+        if (!code.trim()) {
+            alert('Mã nguồn đang trống, không có nội dung để lưu!');
+            return;
+        }
+        const ext = (CURRENT_LANG === 'cpp') ? 'cpp' : 'py';
+        const filename = (CURRENT_LANG === 'cpp') ? 'bai_tap.cpp' : 'bai_tap.py';
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function resetCode() {
+        if (confirm('Bạn có muốn đặt lại mã nguồn mẫu không?')) {
+            editor.setValue((CURRENT_LANG === 'cpp') ? DEFAULT_CPP : DEFAULT_PYTHON);
+        }
+    }
+
+    async function executeCode() {
+        if (!editor) return;
+        const code = editor.getValue().trim();
+        const customInput = document.getElementById('input-area').value;
+        const outputArea = document.getElementById('output-area');
+        const runBtn = document.getElementById('run-btn');
+        const timeBadge = document.getElementById('exec-time-badge');
+
+        if (!code) {
+            outputArea.innerHTML = '<span class="text-rose-400">Vui lòng nhập mã nguồn trước khi chạy!</span>';
+            return;
+        }
+
+        runBtn.disabled = true;
+        runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang chạy...';
+        outputArea.innerHTML = '<span class="text-slate-400"><i class="fa-solid fa-circle-notch fa-spin mr-1.5"></i> Hệ thống đang biên dịch và chạy...</span>';
+
+        try {
+            const resp = await fetch('/api/run-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: CURRENT_LANG,
+                    source_code: code,
+                    custom_input: customInput
+                })
+            });
+            const data = await resp.json();
+
+            if (data.time_ms !== undefined) {
+                timeBadge.classList.remove('hidden');
+                timeBadge.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>${data.time_ms}ms`;
+            }
+
+            let resultHtml = '';
+            if (data.output) {
+                resultHtml += `<span class="text-emerald-400">${escapeHtml(data.output)}</span>`;
+            } else if (!data.error) {
+                resultHtml += '<span class="text-slate-500">(Chương trình kết thúc thành công và không in ra gì)</span>';
+            }
+
+            if (data.error) {
+                resultHtml += `<div class="mt-2 text-rose-400 font-bold">Lỗi trong quá trình chạy / biên dịch:</div>`;
+                resultHtml += `<div class="bg-rose-950/40 p-2.5 rounded border border-rose-800 text-rose-300 mt-1">${escapeHtml(data.error)}</div>`;
+            }
+
+            outputArea.innerHTML = resultHtml;
+
+        } catch (err) {
+            outputArea.innerHTML = `<span class="text-rose-500">Lỗi kết nối máy chủ: ${err.message}</span>`;
+        } finally {
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Code</span>';
+        }
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+{% endblock %}

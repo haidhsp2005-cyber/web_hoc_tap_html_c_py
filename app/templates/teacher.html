@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Trị Giáo Viên & Nhập Test Themis - Themis Edu{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center">
+            <i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-3"></i>
+            Quản Trị Giáo Viên &amp; Nạp Test Chuẩn Themis
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            Tạo đề bài mới, phân chuyên đề và tự động bóc tách bộ test từ file ZIP chuẩn Themis (Test01, Test02...).
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Form Column (2/3 width) -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                
+                <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center">
+                    <i class="fa-solid fa-file-circle-plus text-blue-600 mr-2"></i>
+                    Thêm Đề Bài Mới
+                </h2>
+
+                <form id="add-problem-form" onsubmit="submitNewProblem(event)" class="space-y-5">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Mã bài tập (Code) <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="code" required placeholder="VD: BAI1, TONG_SO..." 
+                                   class="w-full text-xs font-mono p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Chuyên đề <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="topic_id" required class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {% for t in topics %}
+                                <option value="{{ t.id }}">{{ t.name }} ({{ t.category }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Tiêu đề bài tập <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" name="title" required placeholder="VD: Tìm dãy con tăng dài nhất, Thiết kế bảng thời khóa biểu..." 
+                               class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Ngôn ngữ cho phép
+                            </label>
+                            <input type="text" name="allowed_langs" value="cpp,python" placeholder="cpp,python hoặc html" 
+                                   class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                            <span class="text-[10px] text-slate-400 mt-1 block">Nhập cách nhau bởi dấu phẩy: cpp,python hoặc html</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Giới hạn thời gian (ms)
+                            </label>
+                            <input type="number" name="time_limit_ms" value="1000" step="100" 
+                                   class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Nội dung Đề bài (Hỗ trợ Markdown &amp; KaTeX) <span class="text-rose-500">*</span>
+                        </label>
+                        <textarea name="statement" rows="6" required placeholder="Nhập mô tả đề bài, yêu cầu input/output..." 
+                                  class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"></textarea>
+                    </div>
+
+                    <!-- ZIP Upload (Themis format) -->
+                    <div class="p-5 border-2 border-dashed border-emerald-300 rounded-2xl bg-emerald-50/40">
+                        <label class="block text-xs font-bold text-emerald-900 uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-file-zipper mr-1"></i> Tải lên file ZIP bộ test chuẩn Themis
+                        </label>
+                        <p class="text-[11px] text-emerald-700 mb-3">
+                            Hệ thống tự động giải nén và bóc tách các thư mục <code>Test01</code>, <code>Test02</code>... hoặc các cặp file <code>.INP</code> và <code>.OUT</code>.
+                        </p>
+                        <input type="file" name="themis_zip" accept=".zip" 
+                               class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="add-btn" 
+                            class="w-full py-3 rounded-2xl text-white font-bold text-xs bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-plus-circle mr-2"></i> Lưu &amp; Khởi Tạo Đề Bài
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <!-- Sidebar Info & List of Existing Problems -->
+        <div class="space-y-6">
+            
+            <!-- Instructions Card -->
+            <div class="bg-blue-50/70 border border-blue-200 rounded-3xl p-6 text-xs text-blue-900">
+                <h3 class="font-bold uppercase tracking-wider text-blue-950 mb-2 flex items-center">
+                    <i class="fa-solid fa-circle-info mr-2 text-blue-600"></i> Chuẩn Định Dạng Themis
+                </h3>
+                <p class="leading-relaxed mb-3">
+                    Để hệ thống nhận diện đúng 100%, file ZIP nên chứa cấu trúc thư mục dạng:
+                </p>
+                <pre class="bg-white p-3 rounded-xl border border-blue-100 font-mono text-[11px] text-slate-800 leading-tight">
+BAI1.zip
+ ├── Test01/
+ │    ├── BAI1.INP
+ │    └── BAI1.OUT
+ ├── Test02/
+ │    ├── BAI1.INP
+ │    └── BAI1.OUT
+ └── ...</pre>
+            </div>
+
+            <!-- Existing Problems List -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-4 flex items-center justify-between">
+                    <span><i class="fa-solid fa-list mr-1.5 text-slate-400"></i> Bài tập hiện có</span>
+                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">{{ problems | length }} bài</span>
+                </h3>
+                <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                    {% for p in problems %}
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-300 transition-colors flex items-center justify-between text-xs">
+                        <div>
+                            <span class="font-mono font-bold text-blue-700 mr-1.5">{{ p.code }}</span>
+                            <span class="font-medium text-slate-800">{{ p.title }}</span>
+                            <span class="block text-[10px] text-slate-400">{{ p.topic_name }} • {{ p.test_count }} tests</span>
+                        </div>
+                        <a href="/problem/{{ p.code }}" target="_blank" class="text-slate-400 hover:text-blue-600 p-1">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    async function submitNewProblem(e) {
+        e.preventDefault();
+        const form = document.getElementById('add-problem-form');
+        const formData = new FormData(form);
+        const btn = document.getElementById('add-btn');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải lên & giải nén ZIP...';
+
+        try {
+            const resp = await fetch('/api/teacher/add-problem-themis', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert(`Thành công! Đã tạo đề bài và nạp ${data.test_cases_imported} test cases.`);
+                window.location.reload();
+            } else {
+                alert(`Lỗi: ${data.detail || 'Không thể tạo đề bài'}`);
+            }
+        } catch (err) {
+            alert(`Lỗi kết nối: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i> Lưu & Khởi Tạo Đề Bài';
+        }
+    }
+</script>
+{% endblock %}
