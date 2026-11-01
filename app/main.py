@@ -1,9 +1,15 @@
 import os
+import sys
 import shutil
 import tempfile
+
+# Ensure project root is in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
@@ -17,17 +23,8 @@ from app.judge import parse_themis_zip, judge_cpp_code, judge_python_code, judge
 
 app = FastAPI(title="Themis Online Judge & Edu Platform")
 
-# Mount static files safely and templates
-static_dir = os.path.join(BASE_DIR, "app", "static")
+# Templates
 templates_dir = os.path.join(BASE_DIR, "app", "templates")
-try:
-    os.makedirs(static_dir, exist_ok=True)
-except Exception:
-    pass
-
-if os.path.isdir(static_dir):
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
 templates = Jinja2Templates(directory=templates_dir)
 
 # Initialize DB on load to guarantee availability in Vercel Serverless
@@ -59,7 +56,7 @@ async def index_page(request: Request, topic: Optional[str] = None):
 async def solve_page(request: Request, code: str):
     problem = get_problem_detail(code)
     if not problem:
-        raise HTTPException(status_code=404, detail="Không tìm thấy bài tập này.")
+        raise HTTPException(status_code=404, detail="Bài tập không tồn tại.")
     return templates.TemplateResponse(request=request, name="solve.html", context={
         "problem": problem
     })
@@ -67,27 +64,42 @@ async def solve_page(request: Request, code: str):
 @app.get("/leaderboard", response_class=HTMLResponse)
 async def leaderboard_page(request: Request, topic: Optional[str] = None):
     topics = get_all_topics()
-    ranking = get_leaderboard(topic_slug=topic)
+    leaderboard = get_leaderboard(topic_slug=topic)
     return templates.TemplateResponse(request=request, name="leaderboard.html", context={
         "topics": topics,
-        "ranking": ranking,
+        "leaderboard": leaderboard,
         "current_topic": topic or "all"
     })
 
 @app.get("/compile-html", response_class=HTMLResponse)
 async def compile_html_page(request: Request):
-    """Standalone live HTML/CSS compiler and linter."""
     return templates.TemplateResponse(request=request, name="compiler_html.html", context={})
 
 @app.get("/run-cpp", response_class=HTMLResponse)
 async def run_cpp_page(request: Request):
-    """Standalone C++ compiler and runner."""
-    return templates.TemplateResponse(request=request, name="compiler_code.html", context={"lang": "cpp"})
+    return templates.TemplateResponse(request=request, name="compiler_code.html", context={
+        "lang_mode": "cpp",
+        "page_title": "Môi Trường Chạy Thử C++ (GCC 14.2 MinGW)",
+        "default_code": """#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Xin chào các bạn học sinh!" << endl;
+    cout << "Đây là môi trường chạy thử C++." << endl;
+    return 0;
+}"""
+    })
 
 @app.get("/run-python", response_class=HTMLResponse)
 async def run_python_page(request: Request):
-    """Standalone Python runner."""
-    return templates.TemplateResponse(request=request, name="compiler_code.html", context={"lang": "python"})
+    return templates.TemplateResponse(request=request, name="compiler_code.html", context={
+        "lang_mode": "python",
+        "page_title": "Môi Trường Chạy Thử Python 3.14 (UTF-8)",
+        "default_code": """# Môi trường chạy thử Python trực tiếp
+print("Xin chào các bạn học sinh!")
+print("Đây là môi trường chạy thử Python 3.14.")
+"""
+    })
 
 @app.get("/teacher", response_class=HTMLResponse)
 async def teacher_page(request: Request):
@@ -194,60 +206,63 @@ async def api_run_test(req: CustomRunRequest):
         "status": first_res.get("status", "DONE"),
         "time_ms": first_res.get("time_ms", 0),
         "output": first_res.get("user_output", ""),
-        "error": res.get("error_message") or first_res.get("error", "")
+        "error": first_res.get("error_message", res.get("compile_error", ""))
     }
 
 
 @app.post("/api/teacher/add-problem-themis")
-async def api_add_problem_themis(
-    code: str = Form(...),
+async def api_teacher_add_themis(
     title: str = Form(...),
+    code: str = Form(...),
     topic_id: int = Form(...),
     statement: str = Form(...),
+    input_format: str = Form(""),
+    output_format: str = Form(""),
+    sample_input: str = Form(""),
+    sample_output: str = Form(""),
+    allowed_languages: str = Form('["cpp", "python"]'),
     time_limit_ms: int = Form(1000),
-    allowed_langs: str = Form("cpp,python"),
-    themis_zip: Optional[UploadFile] = File(None),
-    manual_tests: Optional[str] = Form(None)
+    max_score: float = Form(10.0),
+    themis_zip: Optional[UploadFile] = File(None)
 ):
-    """Teacher endpoint to create a problem with Themis ZIP tests."""
+    code = code.strip().upper()
+    if not code or not title:
+        raise HTTPException(status_code=400, detail="Mã bài và tiêu đề không được để trống.")
+
+    test_cases = []
+    if themis_zip and themis_zip.filename:
+        # Save ZIP and parse test cases
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        zip_path = os.path.join(UPLOAD_DIR, f"{code}_{themis_zip.filename}")
+        with open(zip_path, "wb") as f:
+            shutil.copyfileobj(themis_zip.file, f)
+        
+        test_cases = parse_themis_zip(zip_path, problem_code=code)
+
+    # Insert into database
     conn = get_connection()
     cur = conn.cursor()
-
-    langs_list = [l.strip() for l in allowed_langs.split(",") if l.strip()]
-
     try:
         cur.execute("""
-        INSERT INTO problems (topic_id, code, title, statement, allowed_languages, time_limit_ms, max_score)
-        VALUES (?, ?, ?, ?, ?, ?, 10.0)
-        """, (topic_id, code.upper(), title, statement, str(langs_list).replace("'", '"'), time_limit_ms))
-        prob_id = cur.lastrowid
+        INSERT INTO problems (topic_id, code, title, statement, input_format, output_format,
+                             sample_input, sample_output, allowed_languages, time_limit_ms, max_score)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (topic_id, code, title, statement, input_format, output_format,
+              sample_input, sample_output, allowed_languages, time_limit_ms, max_score))
+        problem_id = cur.lastrowid
 
-        parsed_tests = []
-        if themis_zip and themis_zip.filename:
-            # Save uploaded zip temporarily
-            temp_zip = os.path.join(UPLOAD_DIR, f"{code}_{themis_zip.filename}")
-            with open(temp_zip, "wb") as buffer:
-                shutil.copyfileobj(themis_zip.file, buffer)
-            
-            parsed_tests = parse_themis_zip(temp_zip)
-            try:
-                os.remove(temp_zip)
-            except:
-                pass
+        # Insert test cases
+        for tc in test_cases:
+            cur.execute("""
+            INSERT INTO test_cases (problem_id, folder_name, input_data, expected_output, points)
+            VALUES (?, ?, ?, ?, ?)
+            """, (problem_id, tc["folder_name"], tc["input_data"], tc["expected_output"], tc.get("points", 1.0)))
 
-        # If manual tests provided or parsed from zip
-        if parsed_tests:
-            for tc in parsed_tests:
-                cur.execute("""
-                INSERT INTO test_cases (problem_id, test_number, folder_name, input_data, expected_output)
-                VALUES (?, ?, ?, ?, ?)
-                """, (prob_id, tc["test_number"], tc.get("folder_name", f"Test{tc['test_number']:02d}"), tc["input_data"], tc["expected_output"]))
-        
         conn.commit()
     except Exception as e:
         conn.rollback()
+        raise HTTPException(status_code=400, detail=f"Lỗi khi lưu bài tập: {str(e)}")
+    finally:
         conn.close()
-        raise HTTPException(status_code=400, detail=f"Lỗi tạo đề bài: {str(e)}")
 
-    conn.close()
-    return {"status": "SUCCESS", "problem_id": prob_id, "test_cases_imported": len(parsed_tests)}
+    return {"status": "SUCCESS", "message": f"Đã thêm bài {code} với {len(test_cases)} test cases thành công!", "code": code}
