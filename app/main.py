@@ -20,8 +20,12 @@ app = FastAPI(title="Themis Online Judge & Edu Platform")
 # Mount static files safely and templates
 static_dir = os.path.join(BASE_DIR, "app", "static")
 templates_dir = os.path.join(BASE_DIR, "app", "templates")
-os.makedirs(static_dir, exist_ok=True)
-if os.path.exists(static_dir):
+try:
+    os.makedirs(static_dir, exist_ok=True)
+except Exception:
+    pass
+
+if os.path.isdir(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 templates = Jinja2Templates(directory=templates_dir)
