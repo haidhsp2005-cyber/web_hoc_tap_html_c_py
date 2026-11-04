@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Trình Chạy Mã {{ 'C++ (GCC 14.2)' if lang == 'cpp' else 'Python 3.14' }} Tự Do | Themis Edu{% endblock %}
+{% set current_lang = lang or lang_mode or 'cpp' %}
+
+{% block title %}Trình Chạy Mã {{ 'C++ (GCC 14.2)' if current_lang == 'cpp' else 'Python 3.14' }} Tự Do | Themis Edu{% endblock %}
 
 {% block head %}
 <!-- CodeMirror Core -->
@@ -95,12 +97,12 @@
     <!-- Action Toolbar (Desktop & Mobile Responsive) -->
     <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex items-center justify-between text-white shadow-md z-10 shrink-0">
         <div class="flex items-center space-x-2 sm:space-x-3">
-            <span class="w-8 h-8 rounded-xl {% if lang == 'cpp' %}bg-blue-600{% else %}bg-amber-500 text-slate-950{% endif %} flex items-center justify-center font-black text-sm shadow">
-                {% if lang == 'cpp' %}&lt;/&gt;{% else %}<i class="fa-brands fa-python text-lg"></i>{% endif %}
+            <span class="w-8 h-8 rounded-xl {% if current_lang == 'cpp' %}bg-blue-600{% else %}bg-amber-500 text-slate-950{% endif %} flex items-center justify-center font-black text-sm shadow">
+                {% if current_lang == 'cpp' %}&lt;/&gt;{% else %}<i class="fa-brands fa-python text-lg"></i>{% endif %}
             </span>
             <div>
                 <h1 class="text-xs sm:text-sm font-bold tracking-tight">
-                    {% if lang == 'cpp' %}Trình Biên Dịch & Chạy C++ (GCC 14.2){% else %}Trình Thông Dịch & Chạy Python 3.14{% endif %}
+                    {% if current_lang == 'cpp' %}Trình Biên Dịch & Chạy C++ (GCC 14.2){% else %}Trình Thông Dịch & Chạy Python 3.14{% endif %}
                 </h1>
                 <p class="text-[10px] text-slate-400 hidden sm:block">Chạy code tự do, nhập input tùy ý và xem output tức thì</p>
             </div>
@@ -116,7 +118,7 @@
             <!-- Save File Button -->
             <button onclick="saveFile()" title="Tải file mã nguồn về máy"
                     class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">
-                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file .{{ 'cpp' if lang == 'cpp' else 'py' }}</span>
+                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file .{{ 'cpp' if current_lang == 'cpp' else 'py' }}</span>
             </button>
 
             <!-- Reset Button -->
@@ -126,10 +128,10 @@
             </button>
 
             <!-- Language Switcher -->
-            <a href="{% if lang == 'cpp' %}/run-python{% else %}/run-cpp{% endif %}"
+            <a href="{% if current_lang == 'cpp' %}/run-python{% else %}/run-cpp{% endif %}"
                class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors">
                 <i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>
-                <span>Chuyển sang {% if lang == 'cpp' %}Python{% else %}C++{% endif %}</span>
+                <span>Chuyển sang {% if current_lang == 'cpp' %}Python{% else %}C++{% endif %}</span>
             </a>
 
             <!-- Run Button -->
@@ -196,7 +198,7 @@
 
 {% block scripts %}
 <script>
-    const CURRENT_LANG = "{{ lang }}";
+    const CURRENT_LANG = "{{ current_lang }}";
 
     const DEFAULT_CPP = `#include <iostream>
 #include <vector>

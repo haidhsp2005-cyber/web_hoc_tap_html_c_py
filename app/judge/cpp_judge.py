@@ -36,9 +36,21 @@ def judge_cpp_code(source_code: str, test_cases: list, problem_code: str = "PROB
             f.write(source_code)
 
         # 1. Compilation
+        import shutil
+        is_compiler_available = os.path.exists(CPP_COMPILER) or bool(shutil.which(CPP_COMPILER))
+        if not is_compiler_available:
+            return {
+                "status": "CE",
+                "score": 0.0,
+                "max_score": 10.0,
+                "error_message": f"Máy chủ không tìm thấy trình biên dịch C++ ({CPP_COMPILER}).\n(Lưu ý: Môi trường Cloud Vercel Serverless mặc định không có GCC/G++ do là môi trường Serverless. Bạn có thể sử dụng môi trường Python & HTML trên Vercel, hoặc chạy C++ tại Localhost trên máy tính để biên dịch đầy đủ với MinGW GCC 14!)",
+                "test_results": []
+            }
+
         env = os.environ.copy()
         mingw_bin = os.path.dirname(CPP_COMPILER)
-        env["PATH"] = mingw_bin + ";" + env.get("PATH", "")
+        if mingw_bin and os.path.exists(mingw_bin):
+            env["PATH"] = mingw_bin + os.pathsep + env.get("PATH", "")
 
         try:
             compile_proc = subprocess.run(

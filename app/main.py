@@ -78,6 +78,7 @@ async def compile_html_page(request: Request):
 @app.get("/run-cpp", response_class=HTMLResponse)
 async def run_cpp_page(request: Request):
     return templates.TemplateResponse(request=request, name="compiler_code.html", context={
+        "lang": "cpp",
         "lang_mode": "cpp",
         "page_title": "Môi Trường Chạy Thử C++ (GCC 14.2 MinGW)",
         "default_code": """#include <iostream>
@@ -93,6 +94,7 @@ int main() {
 @app.get("/run-python", response_class=HTMLResponse)
 async def run_python_page(request: Request):
     return templates.TemplateResponse(request=request, name="compiler_code.html", context={
+        "lang": "python",
         "lang_mode": "python",
         "page_title": "Môi Trường Chạy Thử Python 3.14 (UTF-8)",
         "default_code": """# Môi trường chạy thử Python trực tiếp
