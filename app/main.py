@@ -35,9 +35,9 @@ except Exception as e:
 
 @app.middleware("http")
 async def normalize_path_middleware(request: Request, call_next):
-    """Ensure paths like /app/main.py or /api or empty paths route properly on Vercel."""
+    """Ensure internal Vercel file path destinations route properly."""
     path = request.scope.get("path", "")
-    for prefix in ("/app/main.py", "/api/index.py", "/api"):
+    for prefix in ("/app/main.py", "/api/index.py"):
         if path == prefix:
             request.scope["path"] = "/"
             break
@@ -137,6 +137,7 @@ class SubmitRequest(BaseModel):
     source_code: str
 
 @app.post("/api/submit")
+@app.post("/submit", include_in_schema=False)
 async def api_submit(req: SubmitRequest):
     problem = get_problem_detail(req.problem_code)
     if not problem:
@@ -195,6 +196,7 @@ class CustomRunRequest(BaseModel):
     custom_input: str
 
 @app.post("/api/run-test")
+@app.post("/run-test", include_in_schema=False)
 async def api_run_test(req: CustomRunRequest):
     """Run code with custom input without scoring."""
     lang = (req.language or "").lower().strip()
