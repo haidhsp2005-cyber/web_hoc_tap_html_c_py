@@ -480,33 +480,6 @@
 
     </div>
 
-    <!-- Judging Result Bottom Drawer -->
-    <div id="result-drawer" class="hidden absolute bottom-0 left-0 right-0 bg-white border-t-4 border-blue-600 shadow-2xl z-40 max-h-[85%] flex flex-col transition-all">
-        
-        <!-- Drawer Header -->
-        <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shrink-0">
-            <div class="flex items-center space-x-3">
-                <span id="result-status-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-sm">
-                    ĐANG CHẤM BÀI...
-                </span>
-                <span id="result-score-badge" class="text-lg font-black text-amber-400">
-                    -- / 10.0đ
-                </span>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button onclick="closeResultDrawer()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Drawer Body -->
-        <div class="p-5 overflow-y-auto flex-1 space-y-4 select-text bg-slate-50 text-slate-800" id="result-content-body">
-            <!-- Injected dynamically via JS -->
-        </div>
-
-    </div>
-
 </div>
 {% endblock %}
 
@@ -518,77 +491,11 @@
     const SAMPLE_OUTPUT = `{{ problem.sample_output or '' }}`;
     const HTML_CRITERIA = {{ (problem.html_criteria or []) | tojson }};
 
-    // Starter code templates
+    // Mã khởi tạo: Để trắng hoàn toàn cho học sinh tự gõ làm bài
     const CODE_TEMPLATES = {
-        cpp: `#include <iostream>
-using namespace std;
-
-int main() {
-    // freopen("${PROBLEM_CODE}.INP", "r", stdin);
-    // freopen("${PROBLEM_CODE}.OUT", "w", stdout);
-
-    long long a, b;
-    if (cin >> a >> b) {
-        cout << (a + b) << endl;
-    }
-    return 0;
-}`,
-        python: `import sys
-
-def solve():
-    data = sys.stdin.read().split()
-    if not data:
-        return
-    a, b = int(data[0]), int(data[1])
-    print(a + b)
-
-if __name__ == '__main__':
-    solve()`,
-        html: `<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${PROBLEM_CODE}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #ffffff;
-            color: #1e293b;
-            padding: 24px;
-            margin: 0;
-        }
-        h1 {
-            color: #2563eb;
-            margin-bottom: 12px;
-        }
-        p {
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        ul {
-            line-height: 1.8;
-        }
-        a {
-            color: #0284c7;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <h1>Giới Thiệu Bản Thân</h1>
-    <p>Xin chào mọi người! Mình là học sinh lớp 11 Tin, yêu thích lập trình và thiết kế web.</p>
-    
-    <h2>Sở thích của tôi:</h2>
-    <ul>
-        <li>Lập trình web với HTML & CSS</li>
-        <li>Giải bài tập thuật toán Tin học</li>
-        <li>Đọc sách công nghệ</li>
-    </ul>
-
-    <p>Ghé thăm <a href="https://google.com" target="_blank">trang thông tin tìm kiếm</a> để đọc thêm.</p>
-</body>
-</html>`
+        cpp: '',
+        python: '',
+        html: ''
     };
 
     let editor = null;
@@ -600,7 +507,7 @@ if __name__ == '__main__':
         const currentLang = langSelect ? langSelect.value : (ALLOWED_LANGS[0] || 'cpp');
 
         const initialMode = currentLang === 'cpp' ? 'text/x-c++src' : (currentLang === 'python' ? 'python' : 'htmlmixed');
-        const initialValue = CODE_TEMPLATES[currentLang] || '';
+        const initialValue = '';
 
         const textarea = document.getElementById('code-editor-textarea');
 
@@ -725,7 +632,13 @@ if __name__ == '__main__':
         if (currentLiveBlobUrl) {
             URL.revokeObjectURL(currentLiveBlobUrl);
         }
-        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+
+        let previewHtml = code;
+        if (!previewHtml.trim()) {
+            previewHtml = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;color:#94a3b8;display:flex;align-items:center;justify-content:center;height:85vh;text-align:center;margin:0;background:#ffffff;}h3{font-size:15px;color:#475569;margin-bottom:6px;}p{font-size:13px;color:#94a3b8;margin:0;}</style></head><body><div><div style="font-size:32px;margin-bottom:8px;">🌐</div><h3>Trực quan hóa trang Web (Live Preview)</h3><p>Mã nguồn hiện đang để trống. Hãy gõ mã HTML vào khung bên trái để xem giao diện tại đây!</p></div></body></html>`;
+        }
+
+        const blob = new Blob([previewHtml], { type: 'text/html;charset=utf-8' });
         currentLiveBlobUrl = URL.createObjectURL(blob);
         iframe.src = currentLiveBlobUrl;
     }
@@ -1105,10 +1018,6 @@ if __name__ == '__main__':
 
         const submitBtn = document.getElementById('submit-btn');
         const submitIcon = document.getElementById('submit-btn-icon');
-        const drawer = document.getElementById('result-drawer');
-        const statusBadge = document.getElementById('result-status-badge');
-        const scoreBadge = document.getElementById('result-score-badge');
-        const contentBody = document.getElementById('result-content-body');
 
         // Loading state
         submitBtn.disabled = true;
@@ -1166,30 +1075,11 @@ if __name__ == '__main__':
                 htmlScoreBadge.innerText = `${score} / 10.0đ`;
             }
 
-            // Sync with bottom drawer
-            drawer.classList.remove('hidden');
-            scoreBadge.innerText = `${score} / 10.0đ`;
-            if (status === 'AC') {
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-600 text-white shadow-sm";
-                statusBadge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> HOÀN THÀNH XUẤT SẮC (AC)';
-            } else if (status === 'PARTIAL') {
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500 text-white shadow-sm";
-                statusBadge.innerHTML = '<i class="fa-solid fa-circle-half-stroke mr-1"></i> ĐẠT ĐIỂM MỘT PHẦN';
-            } else if (status === 'CE') {
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm";
-                statusBadge.innerHTML = '<i class="fa-solid fa-bug mr-1"></i> LỖI BIÊN DỊCH / CÚ PHÁP (CE)';
-            } else {
-                statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-sm";
-                statusBadge.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> ${status}`;
-            }
-
             // Render Results Directly into Right-hand Pane
             if (lang === 'html') {
                 renderHtmlGradingResults(data, document.getElementById('html-results-container'));
-                renderHtmlGradingResults(data, contentBody);
             } else {
                 renderCodeGradingResults(data, document.getElementById('output-area'));
-                renderCodeGradingResults(data, contentBody);
             }
 
         } catch (e) {
@@ -1418,10 +1308,6 @@ if __name__ == '__main__':
 
         html += `</div>`;
         container.innerHTML = html;
-    }
-
-    function closeResultDrawer() {
-        document.getElementById('result-drawer').classList.add('hidden');
     }
 
     function escapeHtml(str) {
