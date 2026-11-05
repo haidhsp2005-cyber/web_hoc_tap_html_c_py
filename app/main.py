@@ -36,14 +36,24 @@ except Exception as e:
 @app.middleware("http")
 async def normalize_path_middleware(request: Request, call_next):
     """Ensure internal Vercel file path destinations route properly."""
-    path = request.scope.get("path", "")
+    path = request.scope.get("path", "") or "/"
     for prefix in ("/app/main.py", "/api/index.py"):
         if path == prefix:
-            request.scope["path"] = "/"
+            path = "/"
             break
         elif path.startswith(prefix + "/"):
-            request.scope["path"] = path[len(prefix):]
+            path = path[len(prefix):]
             break
+        elif path.startswith(prefix):
+            path = path[len(prefix):]
+            break
+
+    if not path or path == "":
+        path = "/"
+    elif len(path) > 1 and path.endswith("/"):
+        path = path.rstrip("/")
+
+    request.scope["path"] = path
     response = await call_next(request)
     return response
 

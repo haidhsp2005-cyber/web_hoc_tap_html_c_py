@@ -1078,8 +1078,10 @@
             // Render Results Directly into Right-hand Pane
             if (lang === 'html') {
                 renderHtmlGradingResults(data, document.getElementById('html-results-container'));
+                switchHtmlRightTab('result');
             } else {
                 renderCodeGradingResults(data, document.getElementById('output-area'));
+                switchConsoleTab('result');
             }
 
         } catch (e) {
