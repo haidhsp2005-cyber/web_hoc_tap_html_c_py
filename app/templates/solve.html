@@ -757,11 +757,18 @@ if __name__ == '__main__':
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    language: lang,
+                    language: lang || (code.includes('#include') ? 'cpp' : 'python'),
                     source_code: code,
                     custom_input: customInput
                 })
             });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                outputArea.innerHTML = `<span class="text-rose-400 font-bold">[LỖI MÁY CHỦ ${res.status}]:</span>\n<span class="text-rose-300">${escapeHtml(errData.detail || 'Không thể thực thi')}</span>`;
+                return;
+            }
+
             const data = await res.json();
 
             timeDisplay.innerText = `${data.time_ms || 0}ms`;

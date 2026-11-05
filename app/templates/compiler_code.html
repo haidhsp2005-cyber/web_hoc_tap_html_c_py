@@ -413,11 +413,18 @@ else:
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    language: CURRENT_LANG,
+                    language: CURRENT_LANG || (code.includes('#include') ? 'cpp' : 'python'),
                     source_code: code,
                     custom_input: customInput
                 })
             });
+
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                outputArea.innerHTML = `<div class="text-rose-400 font-bold mb-1"><i class="fa-solid fa-circle-exclamation mr-1"></i> Lỗi máy chủ (${resp.status}):</div><div class="bg-rose-950/60 p-2.5 rounded border border-rose-800 text-rose-300 font-mono text-xs whitespace-pre-wrap">${escapeHtml(errData.detail || 'Không thể thực thi mã nguồn')}</div>`;
+                return;
+            }
+
             const data = await resp.json();
 
             if (data.time_ms !== undefined) {
@@ -427,20 +434,23 @@ else:
 
             let resultHtml = '';
             if (data.output) {
-                resultHtml += `<span class="text-emerald-400">${escapeHtml(data.output)}</span>`;
-            } else if (!data.error) {
-                resultHtml += '<span class="text-slate-500">(Chương trình kết thúc thành công và không in ra gì)</span>';
+                resultHtml += `<div class="text-emerald-400 font-mono whitespace-pre-wrap leading-relaxed">${escapeHtml(data.output)}</div>`;
             }
 
             if (data.error) {
-                resultHtml += `<div class="mt-2 text-rose-400 font-bold">Lỗi trong quá trình chạy / biên dịch:</div>`;
-                resultHtml += `<div class="bg-rose-950/40 p-2.5 rounded border border-rose-800 text-rose-300 mt-1">${escapeHtml(data.error)}</div>`;
+                if (resultHtml) resultHtml += '<br>';
+                resultHtml += `<div class="text-rose-400 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Thông báo lỗi:</div>`;
+                resultHtml += `<div class="bg-rose-950/60 p-2.5 rounded-lg border border-rose-800 text-rose-300 font-mono whitespace-pre-wrap">${escapeHtml(data.error)}</div>`;
+            }
+
+            if (!data.output && !data.error) {
+                resultHtml = '<span class="text-slate-400 italic">(Chương trình thực thi thành công nhưng không có dữ liệu in ra màn hình)</span>';
             }
 
             outputArea.innerHTML = resultHtml;
 
         } catch (err) {
-            outputArea.innerHTML = `<span class="text-rose-500">Lỗi kết nối máy chủ: ${err.message}</span>`;
+            outputArea.innerHTML = `<span class="text-rose-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Lỗi kết nối mạng: ${escapeHtml(err.message)}</span>`;
         } finally {
             runBtn.disabled = false;
             runBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Code</span>';

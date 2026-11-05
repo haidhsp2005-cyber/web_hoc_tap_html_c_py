@@ -33,6 +33,20 @@ try:
 except Exception as e:
     print(f"Notice initializing database: {e}")
 
+@app.middleware("http")
+async def normalize_path_middleware(request: Request, call_next):
+    """Ensure paths like /app/main.py or /api or empty paths route properly on Vercel."""
+    path = request.scope.get("path", "")
+    for prefix in ("/app/main.py", "/api/index.py", "/api"):
+        if path == prefix:
+            request.scope["path"] = "/"
+            break
+        elif path.startswith(prefix + "/"):
+            request.scope["path"] = path[len(prefix):]
+            break
+    response = await call_next(request)
+    return response
+
 @app.on_event("startup")
 def on_startup():
     try:
@@ -42,6 +56,7 @@ def on_startup():
 
 # ==================== PAGE ROUTES ====================
 
+@app.get("", response_class=HTMLResponse, include_in_schema=False)
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request, topic: Optional[str] = None):
     topics = get_all_topics()
@@ -182,8 +197,20 @@ class CustomRunRequest(BaseModel):
 @app.post("/api/run-test")
 async def api_run_test(req: CustomRunRequest):
     """Run code with custom input without scoring."""
-    lang = req.language.lower()
+    lang = (req.language or "").lower().strip()
     source = req.source_code.strip()
+
+    if not source:
+        return {"status": "DONE", "time_ms": 0, "output": "", "error": "Mã nguồn đang để trống"}
+
+    # Auto-detect language if missing or invalid
+    if not lang or lang not in ("cpp", "python", "html"):
+        if "#include" in source:
+            lang = "cpp"
+        elif "<html" in source.lower() or "<!doctype" in source.lower():
+            lang = "html"
+        else:
+            lang = "python"
     
     if lang == "html":
         # For HTML, run validator
@@ -204,11 +231,23 @@ async def api_run_test(req: CustomRunRequest):
         raise HTTPException(status_code=400, detail="Ngôn ngữ không hợp lệ")
 
     first_res = res["test_results"][0] if res.get("test_results") else {}
+    
+    error_msg = (
+        first_res.get("error") or 
+        first_res.get("error_message") or 
+        res.get("error_message") or 
+        res.get("compile_error") or 
+        ""
+    )
+    output_text = first_res.get("user_output", "")
+    status_code = first_res.get("status") or res.get("status", "DONE")
+    exec_time = first_res.get("time_ms", 0)
+
     return {
-        "status": first_res.get("status", "DONE"),
-        "time_ms": first_res.get("time_ms", 0),
-        "output": first_res.get("user_output", ""),
-        "error": first_res.get("error_message", res.get("compile_error", ""))
+        "status": status_code,
+        "time_ms": exec_time,
+        "output": output_text,
+        "error": error_msg
     }
 
 
