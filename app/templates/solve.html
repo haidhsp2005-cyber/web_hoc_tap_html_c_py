@@ -6,6 +6,23 @@
 <!-- KaTeX for math formulas -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<!-- MathJax 3 for MathType/MathML & complex Word formulas -->
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+    };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 <!-- Marked.js for markdown rendering -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -126,6 +143,36 @@
             height: 2px;
         }
     }
+    /* Markdown & MathType styling */
+    .statement-markdown h1 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-top: 0.75rem; margin-bottom: 0.35rem; }
+    .statement-markdown h2 { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-top: 0.65rem; margin-bottom: 0.35rem; }
+    .statement-markdown h3 { font-size: 0.95rem; font-weight: 700; color: #334155; margin-top: 0.5rem; margin-bottom: 0.25rem; }
+    .statement-markdown p { margin-bottom: 0.5rem; line-height: 1.6; }
+    .statement-markdown ul, .statement-markdown ol { margin-left: 1.25rem; margin-bottom: 0.5rem; }
+    .statement-markdown ul { list-style-type: disc; }
+    .statement-markdown ol { list-style-type: decimal; }
+    .statement-markdown li { margin-bottom: 0.25rem; }
+    .statement-markdown code {
+        background: #f1f5f9;
+        color: #0f172a;
+        padding: 0.15rem 0.35rem;
+        border-radius: 0.25rem;
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.85em;
+        border: 1px solid #e2e8f0;
+    }
+    .statement-markdown pre code {
+        display: block;
+        padding: 0.75rem;
+        background: #0f172a;
+        color: #f8fafc;
+        border-radius: 0.5rem;
+        border: 1px solid #334155;
+        overflow-x: auto;
+    }
+    .statement-markdown strong { font-weight: 700; color: #0f172a; }
+    .katex { font-size: 1.08em; text-rendering: geometricPrecision; }
+    .katex-display { margin: 0.5rem 0 !important; }
 </style>
 {% endblock %}
 
@@ -246,48 +293,103 @@
             <!-- THANH TRƯỢT KÉO DÃN CHIA ĐÔI MÀN HÌNH GIỮA CODE VÀ LIVE PREVIEW -->
             <div id="horizontal-resizer" class="resizer-bar-h"></div>
 
-            <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ (Live Preview cho HTML nền trắng, hoặc Console Output cho C++/Python) -->
-            <div id="preview-console-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 bg-white overflow-hidden">
+            <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ (Live Preview cho HTML nền trắng, hoặc Console Output & Bảng Điểm cho C++/Python) -->
+            <div id="preview-console-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 bg-slate-950 overflow-hidden">
 
-                <!-- VIEW A: HTML LIVE PREVIEW (Nền trắng tinh, cân đối) -->
+                <!-- VIEW A: HTML LIVE PREVIEW & ĐÁNH GIÁ (Nền trắng tinh, cân đối) -->
                 <div id="html-live-preview-box" class="flex-1 flex flex-col h-full w-full min-h-0 bg-white">
                     <div class="bg-slate-100 border-b border-slate-200 px-3 py-1.5 flex items-center justify-between text-xs font-bold text-slate-700 shrink-0">
-                        <span class="flex items-center text-slate-800">
-                            <i class="fa-solid fa-desktop mr-1.5 text-orange-600"></i> KẾT QUẢ HIỂN THỊ WEB (LIVE PREVIEW)
-                        </span>
+                        <div class="flex items-center space-x-1">
+                            <button id="html-tab-preview-btn" onclick="switchHtmlRightTab('preview')"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 bg-white shadow-sm border border-slate-200 transition-colors flex items-center">
+                                <i class="fa-solid fa-desktop mr-1.5 text-orange-600"></i> Xem trước Web
+                            </button>
+                            <button id="html-tab-result-btn" onclick="switchHtmlRightTab('result')"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center">
+                                <i class="fa-solid fa-square-poll-vertical mr-1.5 text-emerald-600"></i> Kết quả Chấm Điểm
+                                <span id="html-score-badge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-black hidden">-- / 10.0đ</span>
+                            </button>
+                        </div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-[11px] text-emerald-600 font-semibold"><i class="fa-solid fa-bolt mr-1"></i> Trực tiếp</span>
                             <button onclick="openLivePreviewNewTab()" class="text-blue-600 hover:text-blue-800 text-[11px] font-semibold px-2 py-0.5 rounded hover:bg-blue-50" title="Mở trong tab mới">
                                 <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở tab mới
                             </button>
                         </div>
                     </div>
-                    <div class="flex-1 relative bg-white overflow-hidden min-h-0 w-full h-full">
+                    <!-- Sub-view 1: Iframe -->
+                    <div id="html-iframe-container" class="flex-1 relative bg-white overflow-hidden min-h-0 w-full h-full">
                         <iframe id="live-preview-iframe" class="w-full h-full block bg-white border-0" sandbox="allow-scripts allow-modals"></iframe>
+                    </div>
+                    <!-- Sub-view 2: HTML Grading Results -->
+                    <div id="html-results-container" class="hidden flex-1 p-4 overflow-y-auto bg-slate-50 text-slate-800 min-h-0">
+                        <div class="text-center py-12 text-slate-400">
+                            <i class="fa-solid fa-code-compare text-3xl mb-2 text-slate-300"></i>
+                            <p class="text-xs">Bấm <strong class="text-blue-600">"Nộp bài chấm điểm"</strong> hoặc <strong class="text-amber-600">"Kiểm tra lỗi dòng"</strong> để xem bảng đánh giá tiêu chí tại đây.</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- VIEW B: C++ / PYTHON CONSOLE & CUSTOM INPUT -->
+                <!-- VIEW B: C++ / PYTHON CONSOLE & BẢNG ĐIỂM KẾT QUẢ TRỰC TIẾP -->
                 <div id="code-console-box" class="hidden flex-1 flex flex-col h-full w-full min-h-0 bg-slate-950 text-slate-200">
-                    <div class="bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs font-semibold text-slate-400 shrink-0">
-                        <span class="flex items-center text-slate-300">
-                            <i class="fa-solid fa-terminal mr-1.5 text-blue-400"></i> BẢNG ĐIỀU KHIỂN &amp; OUTPUT CHẠY THỬ
-                        </span>
-                        <span id="run-time-display" class="text-[11px] text-emerald-400 font-mono">0ms</span>
+                    
+                    <!-- Console Header Bar with Tabs & Badges -->
+                    <div class="bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-xs font-semibold shrink-0">
+                        <div class="flex items-center space-x-1">
+                            <button id="console-tab-result-btn" onclick="switchConsoleTab('result')"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-800 border border-slate-700 shadow-sm transition-colors flex items-center">
+                                <i class="fa-solid fa-square-poll-vertical mr-1.5 text-blue-400"></i> Kết quả &amp; Điểm số
+                                <span id="quick-score-badge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white hidden">-- / 10.0đ</span>
+                            </button>
+                            <button id="console-tab-input-btn" onclick="switchConsoleTab('input')"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors flex items-center">
+                                <i class="fa-solid fa-keyboard mr-1.5 text-amber-400"></i> Dữ liệu vào (Input)
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="run-time-display" class="text-[11px] text-emerald-400 font-mono hidden">0ms</span>
+                            <button onclick="submitSolution()" title="Chấm toàn bộ 10 Test Case Themis"
+                                    class="hidden sm:inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white transition-all shadow">
+                                <i class="fa-solid fa-vial-circle-check mr-1"></i> Chấm 10 Test
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="p-2 bg-slate-900/60 border-b border-slate-800 shrink-0">
-                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                            Dữ liệu đầu vào (Custom Input):
-                        </label>
-                        <textarea id="custom-input-box" rows="2" 
-                                  class="w-full text-xs font-mono p-2 bg-slate-950 text-slate-100 border border-slate-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none" 
-                                  placeholder="Nhập test case thử nghiệm vào đây...">{{ problem.sample_input or '' }}</textarea>
+                    <!-- TAB CONTENT 1: INPUT CONTAINER -->
+                    <div id="console-input-pane" class="hidden p-3 bg-slate-900/90 border-b border-slate-800 flex-1 flex flex-col min-h-0">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-arrow-right-to-bracket text-amber-400 mr-1.5"></i> Dữ liệu đầu vào thử nghiệm (Standard Input / CIN):
+                            </label>
+                            <button onclick="document.getElementById('custom-input-box').value = ''" class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors">
+                                <i class="fa-solid fa-eraser mr-1"></i> Xóa input
+                            </button>
+                        </div>
+                        <textarea id="custom-input-box" 
+                                  class="flex-1 w-full text-xs font-mono p-3 bg-slate-950 text-slate-100 border border-slate-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none leading-relaxed" 
+                                  placeholder="Nhập test case thử nghiệm vào đây (ví dụ: các số cách nhau bởi khoảng trắng hoặc xuống dòng)...">{{ problem.sample_input or '' }}</textarea>
+                        <div class="mt-2.5 flex items-center justify-between">
+                            <span class="text-[11px] text-slate-400 italic">Mẹo: Dữ liệu này dùng khi nhấn "Chạy thử"</span>
+                            <button onclick="executeCurrentCode()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center shadow transition-colors">
+                                <i class="fa-solid fa-play mr-1.5"></i> Chạy thử với Input này
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="flex-1 p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap select-text text-slate-100" id="output-area">
-                        <span class="text-slate-500 italic">Bấm "Chạy thử" để xem kết quả xuất ra màn hình tại đây...</span>
+                    <!-- TAB CONTENT 2: RESULTS & SCORE CONTAINER -->
+                    <div id="console-result-pane" class="flex-1 p-3 overflow-y-auto select-text min-h-0 text-slate-100">
+                        <div id="output-area">
+                            <div class="h-full flex flex-col items-center justify-center text-center py-12 text-slate-500">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 mb-3 text-xl shadow">
+                                    <i class="fa-solid fa-terminal"></i>
+                                </div>
+                                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Chưa có kết quả chạy</h4>
+                                <p class="text-xs text-slate-500 mt-1.5 max-w-xs leading-relaxed">
+                                    Nhấn <strong class="text-emerald-400 font-mono">"Chạy thử"</strong> để chạy code với dữ liệu mẫu, hoặc <strong class="text-blue-400 font-mono">"Nộp bài chấm điểm"</strong> để Themis chấm chi tiết 10 Test Case!
+                                </p>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
 
             </div>
@@ -321,19 +423,19 @@
                     
                     <!-- Cột Đề bài chi tiết -->
                     <div class="lg:col-span-2">
-                        <div class="text-sm statement-markdown leading-relaxed text-slate-700">{{ problem.statement | safe }}</div>
+                        <div class="text-sm statement-markdown leading-relaxed text-slate-700 bg-white" id="problem-statement-body">{{ problem.statement | safe }}</div>
                         
                         {% if problem.input_format and 'html' not in problem.allowed_languages %}
                         <div class="mt-3">
                             <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Dữ liệu vào (Input):</h4>
-                            <p class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-slate-800">{{ problem.input_format }}</p>
+                            <div class="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-800 statement-markdown">{{ problem.input_format }}</div>
                         </div>
                         {% endif %}
 
                         {% if problem.output_format and 'html' not in problem.allowed_languages %}
-                        <div class="mt-2">
+                        <div class="mt-2.5">
                             <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Dữ liệu ra (Output):</h4>
-                            <p class="text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-slate-800">{{ problem.output_format }}</p>
+                            <div class="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-800 statement-markdown">{{ problem.output_format }}</div>
                         </div>
                         {% endif %}
                     </div>
@@ -732,7 +834,120 @@ if __name__ == '__main__':
         }
     }
 
-    // Execute Current Code (Chạy thử)
+    // Switch Console Tabs (Result & Score vs Custom Input)
+    function switchConsoleTab(tab) {
+        const resBtn = document.getElementById('console-tab-result-btn');
+        const inpBtn = document.getElementById('console-tab-input-btn');
+        const resPane = document.getElementById('console-result-pane');
+        const inpPane = document.getElementById('console-input-pane');
+
+        if (!resBtn || !inpBtn || !resPane || !inpPane) return;
+
+        if (tab === 'result') {
+            resBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-800 border border-slate-700 shadow-sm transition-colors flex items-center";
+            inpBtn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors flex items-center";
+            resPane.classList.remove('hidden');
+            inpPane.classList.add('hidden');
+        } else {
+            inpBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-800 border border-slate-700 shadow-sm transition-colors flex items-center";
+            resBtn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors flex items-center";
+            inpPane.classList.remove('hidden');
+            resPane.classList.add('hidden');
+        }
+    }
+
+    // Switch HTML Right Column Tabs (Live Preview vs Grading Results)
+    function switchHtmlRightTab(tab) {
+        const previewBtn = document.getElementById('html-tab-preview-btn');
+        const resultBtn = document.getElementById('html-tab-result-btn');
+        const iframeBox = document.getElementById('html-iframe-container');
+        const resultsBox = document.getElementById('html-results-container');
+
+        if (!previewBtn || !resultBtn || !iframeBox || !resultsBox) return;
+
+        if (tab === 'preview') {
+            previewBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 bg-white shadow-sm border border-slate-200 transition-colors flex items-center";
+            resultBtn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center";
+            iframeBox.classList.remove('hidden');
+            resultsBox.classList.add('hidden');
+        } else {
+            resultBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-blue-700 bg-white shadow-sm border border-slate-200 transition-colors flex items-center";
+            previewBtn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center";
+            resultsBox.classList.remove('hidden');
+            iframeBox.classList.add('hidden');
+        }
+    }
+
+    // Render MathType, LaTeX formulas and Markdown
+    function renderAllProblemMathAndMarkdown() {
+        const mathContainers = document.querySelectorAll('.statement-markdown');
+        mathContainers.forEach(container => {
+            let raw = container.getAttribute('data-raw');
+            if (!raw) {
+                raw = container.innerHTML;
+                container.setAttribute('data-raw', raw);
+            }
+
+            // 1. Clean Word MathType artifacts, HTML entities & MSO comments
+            let text = raw
+                .replace(/<!--\[if gte mso [\s\S]*?<!\[endif\]-->/gi, '')
+                .replace(/<!--[\s\S]*?-->/gi, '')
+                .replace(/<o:p>[\s\S]*?<\/o:p>/gi, '')
+                .replace(/«math/gi, '<math')
+                .replace(/«\/math»/gi, '</math>')
+                .replace(/«/gi, '<')
+                .replace(/»/gi, '>');
+
+            // 2. Protect math blocks ($$, $, \[, \(, <math>) from Markdown parser
+            const tokens = [];
+            const mathPattern = /(\$\$[\s\S]+?\$\$|\$[^\$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\<math[\s\S]*?\<\/math\>)/gi;
+
+            const protectedText = text.replace(mathPattern, function(match) {
+                const id = tokens.length;
+                tokens.push(match);
+                return `@@MATH_PH_${id}@@`;
+            });
+
+            // 3. Parse Markdown
+            let html = (typeof marked !== 'undefined' && marked.parse)
+                ? marked.parse(protectedText)
+                : protectedText;
+
+            // 4. Restore math tokens
+            html = html.replace(/@@MATH_PH_(\d+)@@/g, function(_, id) {
+                return tokens[parseInt(id, 10)] || '';
+            });
+
+            container.innerHTML = html;
+
+            // 5. KaTeX Auto-Render for LaTeX formulas
+            if (typeof renderMathInElement === 'function') {
+                try {
+                    renderMathInElement(container, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\[', right: '\\]', display: true},
+                            {left: '\\(', right: '\\)', display: false}
+                        ],
+                        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                        throwOnError: false
+                    });
+                } catch (err) {
+                    console.warn('KaTeX render issue:', err);
+                }
+            }
+
+            // 6. MathJax Typeset for MathML & Word MathType
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([container]).catch(function(e) {
+                    console.warn('MathJax typeset issue:', e);
+                });
+            }
+        });
+    }
+
+    // Execute Current Code (Chạy thử với Custom Input)
     async function executeCurrentCode() {
         const lang = document.getElementById('language-select').value;
         if (lang === 'html') {
@@ -740,6 +955,8 @@ if __name__ == '__main__':
             checkHtmlSyntaxLines();
             return;
         }
+
+        switchConsoleTab('result');
 
         const runBtn = document.getElementById('run-btn');
         const runIcon = document.getElementById('run-btn-icon');
@@ -750,7 +967,13 @@ if __name__ == '__main__':
 
         runBtn.disabled = true;
         runIcon.className = "fa-solid fa-spinner fa-spin mr-1.5";
-        outputArea.innerHTML = '<span class="text-blue-400 italic"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Đang biên dịch và thực thi...</span>';
+        outputArea.innerHTML = `
+            <div class="p-8 text-center text-slate-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-400 mb-2.5"></i>
+                <p class="text-xs font-bold text-slate-300">Đang biên dịch và thực thi mã nguồn...</p>
+                <p class="text-[11px] text-slate-500 mt-1">Đang kiểm tra kết quả chạy thử với dữ liệu đầu vào...</p>
+            </div>
+        `;
 
         try {
             const res = await fetch('/api/run-test', {
@@ -765,25 +988,104 @@ if __name__ == '__main__':
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                outputArea.innerHTML = `<span class="text-rose-400 font-bold">[LỖI MÁY CHỦ ${res.status}]:</span>\n<span class="text-rose-300">${escapeHtml(errData.detail || 'Không thể thực thi')}</span>`;
+                outputArea.innerHTML = `
+                    <div class="p-4 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300">
+                        <div class="font-bold flex items-center mb-1 text-rose-400">
+                            <i class="fa-solid fa-circle-exclamation mr-1.5"></i> Lỗi máy chủ (${res.status}):
+                        </div>
+                        <div class="font-mono text-xs whitespace-pre-wrap">${escapeHtml(errData.detail || 'Không thể thực thi mã nguồn')}</div>
+                    </div>
+                `;
                 return;
             }
 
             const data = await res.json();
+            const timeMs = data.time_ms || 0;
+            timeDisplay.classList.remove('hidden');
+            timeDisplay.innerText = `${timeMs}ms`;
 
-            timeDisplay.innerText = `${data.time_ms || 0}ms`;
+            let outHtml = '';
+            const status = data.status || 'DONE';
 
-            if (data.status === 'CE') {
-                outputArea.innerHTML = `<span class="text-rose-400 font-bold">[COMPILE ERROR]:</span>\n<span class="text-rose-300">${escapeHtml(data.error || 'Lỗi biên dịch')}</span>`;
-            } else if (data.status === 'RTE') {
-                outputArea.innerHTML = `<span class="text-amber-400 font-bold">[RUNTIME ERROR]:</span>\n<span class="text-amber-300">${escapeHtml(data.error || 'Lỗi lúc chạy')}</span>`;
-            } else if (data.status === 'TLE') {
-                outputArea.innerHTML = `<span class="text-orange-400 font-bold">[TIME LIMIT EXCEEDED]: Vượt quá thời gian cho phép</span>`;
-            } else {
-                outputArea.innerHTML = `<span class="text-emerald-400 font-bold">[OUTPUT]:</span>\n${escapeHtml(data.output || '(Không có dữ liệu xuất)')}`;
+            // Top Status Bar
+            let badgeClass = 'bg-emerald-600 text-white';
+            let statusText = 'CHẠY THỬ THÀNH CÔNG (AC)';
+            if (status === 'CE') {
+                badgeClass = 'bg-rose-600 text-white';
+                statusText = 'LỖI BIÊN DỊCH (COMPILE ERROR)';
+            } else if (status === 'RTE') {
+                badgeClass = 'bg-amber-600 text-white';
+                statusText = 'LỖI THỰC THI (RUNTIME ERROR)';
+            } else if (status === 'TLE') {
+                badgeClass = 'bg-orange-600 text-white';
+                statusText = 'QUÁ THỜI GIAN (TIME LIMIT EXCEEDED)';
             }
+
+            outHtml += `
+                <div class="mb-3 p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${badgeClass} shadow-sm">
+                            ${statusText}
+                        </span>
+                    </div>
+                    <span class="text-xs font-mono text-emerald-400 font-bold"><i class="fa-regular fa-clock mr-1"></i>${timeMs}ms</span>
+                </div>
+            `;
+
+            // Input section
+            if (customInput.trim()) {
+                outHtml += `
+                    <div class="mb-3">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                            <i class="fa-solid fa-arrow-right-to-bracket text-amber-400 mr-1"></i> Dữ liệu vào (Input đã dùng):
+                        </span>
+                        <pre class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-slate-300 font-mono text-xs whitespace-pre-wrap select-all">${escapeHtml(customInput)}</pre>
+                    </div>
+                `;
+            }
+
+            // Output section
+            outHtml += `
+                <div class="mb-3">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                        <i class="fa-solid fa-terminal text-blue-400 mr-1"></i> Kết quả xuất ra màn hình (Output Console):
+                    </span>
+                    <pre class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed select-all">${escapeHtml(data.output || '(Chương trình không in ra gì)')}</pre>
+                </div>
+            `;
+
+            // Error section (if any)
+            if (data.error) {
+                outHtml += `
+                    <div class="mb-3 p-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300">
+                        <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wider block mb-1 flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Chi tiết lỗi:
+                        </span>
+                        <pre class="font-mono text-xs whitespace-pre-wrap text-rose-300">${escapeHtml(data.error)}</pre>
+                    </div>
+                `;
+            }
+
+            // Bottom CTA: Submit for official grading
+            outHtml += `
+                <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                    <span class="text-xs text-slate-400 font-medium">Kết quả chạy thử đạt yêu cầu?</span>
+                    <button onclick="submitSolution()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center shadow-md transition-all">
+                        <i class="fa-solid fa-vial-circle-check mr-1.5"></i> Chấm điểm 10 Test Themis
+                    </button>
+                </div>
+            `;
+
+            outputArea.innerHTML = outHtml;
         } catch (e) {
-            outputArea.innerHTML = `<span class="text-rose-400 font-bold">[LỖI HỆ THỐNG]:</span> ${escapeHtml(e.message)}`;
+            outputArea.innerHTML = `
+                <div class="p-4 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300">
+                    <div class="font-bold flex items-center mb-1 text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Lỗi hệ thống:
+                    </div>
+                    <div class="font-mono text-xs whitespace-pre-wrap">${escapeHtml(e.message)}</div>
+                </div>
+            `;
         } finally {
             runBtn.disabled = false;
             runIcon.className = "fa-solid fa-play mr-1.5";
@@ -794,7 +1096,7 @@ if __name__ == '__main__':
     async function submitSolution() {
         const lang = document.getElementById('language-select').value;
         const code = editor ? editor.getValue() : '';
-        const studentName = document.getElementById('student-name-input') ? document.getElementById('student-name-input').value : 'Học sinh';
+        const studentName = document.getElementById('student-name-input') ? document.getElementById('student-name-input').value : 'Học sinh 11 Tin';
 
         if (!code.trim()) {
             alert('Vui lòng viết mã nguồn trước khi nộp bài chấm điểm!');
@@ -808,20 +1110,31 @@ if __name__ == '__main__':
         const scoreBadge = document.getElementById('result-score-badge');
         const contentBody = document.getElementById('result-content-body');
 
+        // Loading state
         submitBtn.disabled = true;
         submitIcon.className = "fa-solid fa-spinner fa-spin mr-1.5";
 
-        drawer.classList.remove('hidden');
-        statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-sm";
-        statusBadge.innerText = "ĐANG CHẤM BÀI...";
-        scoreBadge.innerText = "-- / 10.0đ";
-        contentBody.innerHTML = `
-            <div class="text-center py-8">
-                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
-                <p class="font-bold text-slate-700">Hệ thống Themis Edu đang chấm bài làm của bạn...</p>
-                <p class="text-xs text-slate-400 mt-1">Đang đối soát cú pháp và các test case chuẩn...</p>
-            </div>
-        `;
+        if (lang === 'html') {
+            switchHtmlRightTab('result');
+            const htmlRes = document.getElementById('html-results-container');
+            htmlRes.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
+                    <p class="font-bold text-slate-800 text-sm">Hệ thống Themis Edu đang chấm bài HTML của bạn...</p>
+                    <p class="text-xs text-slate-500 mt-1">Đang kiểm tra cấu trúc thẻ và các tiêu chí...</p>
+                </div>
+            `;
+        } else {
+            switchConsoleTab('result');
+            const outputArea = document.getElementById('output-area');
+            outputArea.innerHTML = `
+                <div class="text-center py-12 text-slate-300">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i>
+                    <p class="font-bold text-sm text-slate-200">Hệ thống Themis Edu đang chấm bài làm của bạn...</p>
+                    <p class="text-xs text-slate-400 mt-1">Đang chạy qua 10 bộ Test Case chuẩn của Themis...</p>
+                </div>
+            `;
+        }
 
         try {
             const res = await fetch('/api/submit', {
@@ -837,12 +1150,25 @@ if __name__ == '__main__':
             });
 
             const data = await res.json();
-
-            // Status Badge Formatting
             const status = data.status || 'WA';
             const score = typeof data.score === 'number' ? data.score.toFixed(1) : '0.0';
-            scoreBadge.innerText = `${score} / 10.0đ`;
 
+            // Update Header Score Badges
+            const quickBadge = document.getElementById('quick-score-badge');
+            if (quickBadge) {
+                quickBadge.classList.remove('hidden');
+                quickBadge.innerText = `${score} / 10.0đ`;
+                quickBadge.className = `ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-black text-white ${status === 'AC' ? 'bg-emerald-600' : (status === 'PARTIAL' ? 'bg-amber-600' : 'bg-rose-600')}`;
+            }
+            const htmlScoreBadge = document.getElementById('html-score-badge');
+            if (htmlScoreBadge) {
+                htmlScoreBadge.classList.remove('hidden');
+                htmlScoreBadge.innerText = `${score} / 10.0đ`;
+            }
+
+            // Sync with bottom drawer
+            drawer.classList.remove('hidden');
+            scoreBadge.innerText = `${score} / 10.0đ`;
             if (status === 'AC') {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-600 text-white shadow-sm";
                 statusBadge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> HOÀN THÀNH XUẤT SẮC (AC)';
@@ -857,17 +1183,29 @@ if __name__ == '__main__':
                 statusBadge.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i> ${status}`;
             }
 
-            // Render Result Details based on Language
+            // Render Results Directly into Right-hand Pane
             if (lang === 'html') {
+                renderHtmlGradingResults(data, document.getElementById('html-results-container'));
                 renderHtmlGradingResults(data, contentBody);
             } else {
+                renderCodeGradingResults(data, document.getElementById('output-area'));
                 renderCodeGradingResults(data, contentBody);
             }
 
         } catch (e) {
-            statusBadge.className = "px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-700 text-white shadow-sm";
-            statusBadge.innerText = "LỖI HỆ THỐNG";
-            contentBody.innerHTML = `<div class="p-4 bg-rose-50 text-rose-800 rounded-xl border border-rose-200">${escapeHtml(e.message)}</div>`;
+            const errHtml = `
+                <div class="p-4 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300">
+                    <div class="font-bold flex items-center mb-1 text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Lỗi hệ thống:
+                    </div>
+                    <div class="font-mono text-xs whitespace-pre-wrap">${escapeHtml(e.message)}</div>
+                </div>
+            `;
+            if (lang === 'html') {
+                document.getElementById('html-results-container').innerHTML = errHtml;
+            } else {
+                document.getElementById('output-area').innerHTML = errHtml;
+            }
         } finally {
             submitBtn.disabled = false;
             submitIcon.className = "fa-solid fa-paper-plane mr-1.5";
@@ -876,14 +1214,31 @@ if __name__ == '__main__':
 
     // Render HTML Grading Details
     function renderHtmlGradingResults(data, container) {
+        if (!container) return;
         let html = '';
+        const score = typeof data.score === 'number' ? data.score.toFixed(1) : '0.0';
+        const isPerfect = (data.status === 'AC' || score === '10.0');
+
+        html += `
+            <div class="mb-4 p-4 rounded-2xl bg-gradient-to-br ${isPerfect ? 'from-emerald-950 via-slate-900 to-slate-950 border-emerald-500' : 'from-blue-950 via-slate-900 to-slate-950 border-blue-600'} border shadow-md text-white">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs uppercase tracking-wider font-bold text-slate-300">KẾT QUẢ CHẤM ĐIỂM WEB</span>
+                    <span class="px-2 py-0.5 rounded text-[11px] font-black ${isPerfect ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}">${isPerfect ? 'HOÀN THÀNH (AC)' : 'ĐẠT ĐIỂM'}</span>
+                </div>
+                <div class="flex items-baseline space-x-2 my-1">
+                    <span class="text-3xl font-black ${isPerfect ? 'text-emerald-400' : 'text-blue-400'}">${score}</span>
+                    <span class="text-sm font-bold text-slate-400">/ 10.0 ĐIỂM</span>
+                </div>
+                <p class="text-[11px] text-slate-300 mt-1">${isPerfect ? 'Trang web chuẩn cú pháp HTML và thỏa mãn tất cả tiêu chí!' : 'Hãy xem lại các tiêu chí chưa đạt bên dưới để hoàn thiện.'}</p>
+            </div>
+        `;
 
         const errors = data.syntax_errors || [];
         const warnings = data.syntax_warnings || [];
 
         if (errors.length > 0 || warnings.length > 0) {
             html += `
-                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                <div class="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200">
                     <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wider mb-2 flex items-center">
                         <i class="fa-solid fa-triangle-exclamation text-rose-600 mr-2 text-sm"></i> Chi tiết lỗi cú pháp thẻ theo dòng:
                     </h4>
@@ -900,10 +1255,10 @@ if __name__ == '__main__':
 
         const criteria = data.criteria_results || [];
         html += `
-            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+            <div class="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-list-check text-blue-600 mr-1.5"></i> Kết quả kiểm tra tiêu chí cấu trúc web:</span>
-                    <span class="text-emerald-600 font-bold">${data.score ? data.score.toFixed(1) : 0} / 10.0 điểm</span>
+                    <span><i class="fa-solid fa-list-check text-blue-600 mr-1.5"></i> Chi tiết kiểm tra tiêu chí cấu trúc web:</span>
+                    <span class="text-emerald-600 font-bold">${score} / 10.0đ</span>
                 </h4>
                 <div class="space-y-2">
         `;
@@ -914,7 +1269,7 @@ if __name__ == '__main__':
             criteria.forEach(c => {
                 const isPassed = c.passed;
                 html += `
-                    <div class="p-3 rounded-xl border ${isPassed ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'} flex items-start justify-between">
+                    <div class="p-2.5 rounded-xl border ${isPassed ? 'border-emerald-200 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60'} flex items-start justify-between">
                         <div>
                             <div class="flex items-center space-x-2">
                                 <i class="fa-solid ${isPassed ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-500'}"></i>
@@ -935,57 +1290,133 @@ if __name__ == '__main__':
         container.innerHTML = html;
     }
 
-    // Render C++ / Python Test Results
+    // Render C++ / Python Test Results with Correct/Wrong and Score
     function renderCodeGradingResults(data, container) {
+        if (!container) return;
         let html = '';
+        const status = data.status || 'WA';
+        const score = typeof data.score === 'number' ? data.score.toFixed(1) : '0.0';
+        const tests = data.test_results || [];
+        const passedCount = tests.filter(t => t.status === 'AC').length;
+        const totalTests = tests.length || 10;
 
-        if (data.compile_error) {
+        // Hero Score Banner
+        let bannerBg = 'from-emerald-950 via-slate-900 to-slate-950 border-emerald-500/50';
+        let scoreColor = 'text-emerald-400';
+        let statusTitle = 'HOÀN THÀNH XUẤT SẮC (AC)';
+        let statusDesc = 'Mã nguồn đã vượt qua tuyệt đối 100% test case!';
+
+        if (status === 'PARTIAL') {
+            bannerBg = 'from-amber-950 via-slate-900 to-slate-950 border-amber-500/50';
+            scoreColor = 'text-amber-400';
+            statusTitle = 'ĐẠT ĐIỂM MỘT PHẦN (PARTIAL)';
+            statusDesc = `Vượt qua ${passedCount}/${totalTests} test case. Hãy kiểm tra các test bị sai bên dưới!`;
+        } else if (status === 'CE') {
+            bannerBg = 'from-rose-950 via-slate-900 to-slate-950 border-rose-600/50';
+            scoreColor = 'text-rose-400';
+            statusTitle = 'LỖI BIÊN DỊCH (COMPILE ERROR)';
+            statusDesc = 'Mã nguồn có lỗi cú pháp, chưa biên dịch thành công.';
+        } else if (status === 'WA' || status === 'RTE') {
+            bannerBg = 'from-rose-950 via-slate-900 to-slate-950 border-rose-600/50';
+            scoreColor = 'text-rose-400';
+            statusTitle = status === 'RTE' ? 'LỖI THỰC THI (RUNTIME ERROR)' : 'SAI KẾT QUẢ (WRONG ANSWER)';
+            statusDesc = `Đúng ${passedCount}/${totalTests} test. Kết quả in ra chưa trùng khớp với đáp án mẫu.`;
+        }
+
+        html += `
+            <div class="mb-4 p-4 rounded-2xl bg-gradient-to-br ${bannerBg} border shadow-lg text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs uppercase tracking-wider font-bold text-slate-300 flex items-center">
+                        <i class="fa-solid fa-trophy text-amber-400 mr-2"></i> BẢNG ĐIỂM CHẤM BÀI THEMIS
+                    </span>
+                    <span class="text-xs font-mono font-bold text-slate-400">Đúng ${passedCount}/${totalTests} test</span>
+                </div>
+                <div class="flex items-baseline space-x-3 my-1">
+                    <span class="text-3xl font-black ${scoreColor} tracking-tight">${score}</span>
+                    <span class="text-sm font-bold text-slate-400">/ 10.0 ĐIỂM</span>
+                </div>
+                <div class="text-xs font-extrabold ${scoreColor} mt-1">${statusTitle}</div>
+                <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">${statusDesc}</p>
+            </div>
+        `;
+
+        if (data.compile_error || (data.status === 'CE' && data.error_message)) {
+            const ceText = data.compile_error || data.error_message;
             html += `
-                <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
-                    <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wider mb-2">Thông báo lỗi biên dịch (Compile Error):</h4>
-                    <pre class="bg-slate-900 text-rose-300 p-3 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap">${escapeHtml(data.compile_error)}</pre>
+                <div class="mb-4 p-3.5 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-200">
+                    <h4 class="text-xs font-bold text-rose-300 uppercase tracking-wider mb-1.5 flex items-center">
+                        <i class="fa-solid fa-bug text-rose-400 mr-1.5"></i> Chi tiết lỗi biên dịch:
+                    </h4>
+                    <pre class="bg-slate-950 p-2.5 rounded-lg text-rose-300 font-mono text-xs overflow-x-auto whitespace-pre-wrap">${escapeHtml(ceText)}</pre>
                 </div>
             `;
             container.innerHTML = html;
             return;
         }
 
-        const tests = data.test_results || [];
-        const passedCount = tests.filter(t => t.status === 'AC').length;
-
+        // Test Cases List
         html += `
-            <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-vial-circle-check text-blue-600 mr-1.5"></i> Kết quả kiểm thử bộ Test Themis:
-                    </h4>
-                    <span class="text-xs font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-                        Đúng ${passedCount} / ${tests.length} tests
-                    </span>
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-slate-400 font-bold uppercase tracking-wider px-1">
+                    <span>Chi tiết 10 Test Case Themis:</span>
+                    <span>Tỷ lệ: ${Math.round((passedCount / (totalTests || 1)) * 100)}%</span>
                 </div>
-                <div class="space-y-2">
         `;
 
-        tests.forEach((t, idx) => {
-            const isAC = t.status === 'AC';
-            const statusColor = isAC ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300';
-            html += `
-                <div class="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <span class="font-mono text-xs font-bold px-2 py-0.5 rounded border ${statusColor}">
-                            ${t.status}
-                        </span>
-                        <span class="text-xs font-bold text-slate-800">Test #${idx + 1} (${t.folder_name || 'Test'})</span>
-                    </div>
-                    <div class="flex items-center space-x-3 text-xs text-slate-500 font-mono">
-                        <span><i class="fa-regular fa-clock mr-1"></i> ${t.time_ms || 0}ms</span>
-                        <span class="font-bold ${isAC ? 'text-emerald-600' : 'text-slate-400'}">${isAC ? '+1.0đ' : '0.0đ'}</span>
-                    </div>
-                </div>
-            `;
-        });
+        if (tests.length === 0) {
+            html += `<div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs italic text-center">Không có dữ liệu chi tiết từng test.</div>`;
+        } else {
+            tests.forEach((t, idx) => {
+                const isAC = t.status === 'AC';
+                const statusBadge = isAC 
+                    ? '<span class="px-2 py-0.5 rounded font-black text-[11px] bg-emerald-600/30 text-emerald-400 border border-emerald-500/50"><i class="fa-solid fa-check mr-1"></i>ĐÚNG (AC)</span>'
+                    : `<span class="px-2 py-0.5 rounded font-black text-[11px] bg-rose-600/30 text-rose-400 border border-rose-500/50"><i class="fa-solid fa-xmark mr-1"></i>${t.status === 'WA' ? 'SAI (WA)' : t.status}</span>`;
 
-        html += `</div></div>`;
+                const testPoints = isAC ? '+1.0đ' : '0.0đ';
+                const cardBorder = isAC ? 'border-slate-800 hover:border-emerald-700/60' : 'border-rose-900/60 bg-rose-950/20';
+
+                html += `
+                    <div class="rounded-xl border ${cardBorder} bg-slate-900/90 p-2.5 transition-all text-xs">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('test-detail-${idx}').classList.toggle('hidden')">
+                            <div class="flex items-center space-x-2.5">
+                                ${statusBadge}
+                                <span class="font-bold text-slate-200">Test #${idx + 1}</span>
+                                <span class="text-slate-500 font-mono text-[11px]">(${escapeHtml(t.folder_name || 'Test')})</span>
+                            </div>
+                            <div class="flex items-center space-x-3 text-slate-400 font-mono text-[11px]">
+                                <span><i class="fa-regular fa-clock mr-1"></i>${t.time_ms || 0}ms</span>
+                                <span class="font-bold ${isAC ? 'text-emerald-400' : 'text-rose-400'}">${testPoints}</span>
+                                <i class="fa-solid fa-chevron-down text-[10px] text-slate-500"></i>
+                            </div>
+                        </div>
+
+                        <!-- Expandable Details for Failed or Checked Test -->
+                        <div id="test-detail-${idx}" class="${isAC ? 'hidden' : ''} mt-2.5 pt-2.5 border-t border-slate-800/80 font-mono text-[11px] space-y-1.5">
+                            ${t.user_output !== undefined ? `
+                                <div>
+                                    <span class="text-slate-400 block font-sans font-semibold">Kết quả của bạn (Your output):</span>
+                                    <pre class="bg-slate-950 p-2 rounded border border-slate-800 ${isAC ? 'text-emerald-400' : 'text-rose-300'} whitespace-pre-wrap">${escapeHtml(t.user_output || '(Không có dữ liệu)')}</pre>
+                                </div>
+                            ` : ''}
+                            ${t.expected_output ? `
+                                <div>
+                                    <span class="text-slate-400 block font-sans font-semibold">Kết quả chuẩn của Themis (Expected output):</span>
+                                    <pre class="bg-slate-950 p-2 rounded border border-slate-800 text-emerald-400 whitespace-pre-wrap">${escapeHtml(t.expected_output)}</pre>
+                                </div>
+                            ` : ''}
+                            ${t.error ? `
+                                <div>
+                                    <span class="text-rose-400 block font-sans font-semibold">Thông báo lỗi:</span>
+                                    <pre class="bg-rose-950/60 p-2 rounded border border-rose-900 text-rose-300 whitespace-pre-wrap">${escapeHtml(t.error)}</pre>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `</div>`;
         container.innerHTML = html;
     }
 
@@ -1090,6 +1521,12 @@ if __name__ == '__main__':
     document.addEventListener('DOMContentLoaded', () => {
         initEditor();
         setupResizers();
+        renderAllProblemMathAndMarkdown();
+    });
+
+    window.addEventListener('load', () => {
+        // Fallback re-render after KaTeX / MathJax scripts finish loading
+        setTimeout(renderAllProblemMathAndMarkdown, 300);
     });
 </script>
 {% endblock %}
