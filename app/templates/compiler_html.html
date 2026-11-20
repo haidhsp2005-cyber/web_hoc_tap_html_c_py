@@ -315,7 +315,12 @@
                 theme: 'dracula',
                 lineNumbers: true,
                 lineWrapping: true,
-                autoCloseTags: true,
+                autoCloseTags: {
+                    whenClosing: true,
+                    whenOpening: true,
+                    dontCloseTags: ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"],
+                    indentTags: false // TẮT tự động xuống dòng: Thẻ đóng và mở luôn cùng 1 dòng, chỉ khi nhấn Enter mới xuống dòng
+                },
                 autoCloseBrackets: true,
                 matchBrackets: true,
                 matchTags: { bothTags: true },

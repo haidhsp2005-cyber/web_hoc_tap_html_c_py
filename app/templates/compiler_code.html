@@ -238,11 +238,100 @@ else:
     print("Mẹo: Nhập dãy số vào khung 'Dữ liệu vào (Input)' ở góc phải để tính toán!")
 `;
 
+    // Từ khóa & Cấu trúc chuẩn C++ cho học sinh và lập trình viên Themis
+    const CPP_KEYWORDS = [
+        "#include <iostream>", "#include <vector>", "#include <algorithm>", "#include <string>",
+        "#include <cmath>", "#include <iomanip>", "#include <map>", "#include <set>",
+        "#include <queue>", "#include <stack>", "#include <climits>", "#include <cstring>",
+        "using namespace std;", "int main()", "ios_base::sync_with_stdio(false); cin.tie(NULL);",
+        "cin >>", "cout <<", "endl", "getline(cin, )", "printf", "scanf",
+        "int", "long long", "double", "float", "char", "string", "bool", "void", "auto", "size_t",
+        "const", "static", "unsigned", "short",
+        "if", "else", "else if", "for (int i = 0; i < n; i++)", "for (auto x : )", "while", "do",
+        "switch", "case", "break", "continue", "return 0;", "return", "default",
+        "vector<int>", "vector<long long>", "vector<string>", "pair<int, int>", "make_pair",
+        "map<int, int>", "set<int>", "unordered_map", "unordered_set", "queue<int>",
+        "priority_queue<int>", "stack<int>", "deque<int>", "struct", "class",
+        "push_back", "pop_back", "size()", "empty()", "clear()", "begin()", "end()", "rbegin()", "rend()",
+        "front()", "back()", "top()", "pop()", "push()", "insert", "erase", "find", "count",
+        "sort(a.begin(), a.end())", "reverse(a.begin(), a.end())", "max", "min", "swap", "abs",
+        "sqrt", "pow", "lower_bound", "upper_bound", "binary_search", "fill", "memset",
+        "true", "false", "nullptr", "first", "second"
+    ];
+
+    // Từ khóa & Cấu trúc chuẩn Python cho học sinh và lập trình viên Themis
+    const PYTHON_KEYWORDS = [
+        "print()", "input()", "input().split()", "map(int, input().split())", "list(map(int, input().split()))",
+        "open()", "sys.stdin.readline",
+        "int()", "float()", "str()", "bool()", "list()", "dict()", "set()", "tuple()",
+        "len()", "range()", "enumerate()", "zip()", "type()", "id()",
+        "def", "return", "if", "elif", "else", "for i in range():", "for", "in", "while", "break", "continue", "pass",
+        "import", "from", "as", "class", "try", "except", "finally", "raise", "with",
+        "True", "False", "None", "and", "or", "not", "is", "lambda", "yield", "global", "nonlocal",
+        "if __name__ == '__main__':",
+        "sum()", "min()", "max()", "abs()", "round()", "pow()", "sorted()", "reversed()",
+        "math.sqrt()", "math.gcd()", "math.floor()", "math.ceil()", "math.pi",
+        "append()", "extend()", "insert()", "pop()", "remove()", "clear()", "index()", "count()",
+        "sort()", "reverse()", "copy()", "keys()", "values()", "items()", "get()", "update()",
+        "split()", "join()", "strip()", "replace()", "find()", "lower()", "upper()", "startswith()", "endswith()",
+        "format()", "f\"\""
+    ];
+
+    // Hàm sinh gợi ý thông minh kết hợp từ khóa chuẩn và biến do học sinh tự đặt
+    function createSmartHint(lang) {
+        const keywords = (lang === 'cpp') ? CPP_KEYWORDS : PYTHON_KEYWORDS;
+        return function(cm) {
+            const cur = cm.getCursor();
+            const token = cm.getTokenAt(cur);
+            const word = token.string.trim();
+            const start = token.start;
+            const end = cur.ch;
+
+            let anywords = [];
+            try {
+                if (CodeMirror.hint.anyword) {
+                    const anyRes = CodeMirror.hint.anyword(cm);
+                    if (anyRes && anyRes.list) anywords = anyRes.list;
+                }
+            } catch(e) {}
+
+            const pool = Array.from(new Set([...keywords, ...anywords]));
+            let list = [];
+
+            if (!word || word === '.' || word === '#' || word === '<') {
+                list = pool.slice(0, 30);
+            } else {
+                const lower = word.toLowerCase();
+                list = pool.filter(item => {
+                    const text = typeof item === 'string' ? item : item.text;
+                    return text.toLowerCase().includes(lower);
+                });
+                list.sort((a, b) => {
+                    const textA = (typeof a === 'string' ? a : a.text).toLowerCase();
+                    const textB = (typeof b === 'string' ? b : b.text).toLowerCase();
+                    const aStarts = textA.startsWith(lower);
+                    const bStarts = textB.startsWith(lower);
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    return textA.localeCompare(textB);
+                });
+            }
+
+            return {
+                list: list.slice(0, 25),
+                from: CodeMirror.Pos(cur.line, (token.string.startsWith('#') || token.string.startsWith('.')) ? token.start : (word ? start : cur.ch)),
+                to: CodeMirror.Pos(cur.line, end)
+            };
+        };
+    }
+
     let editor = null;
 
     window.addEventListener('DOMContentLoaded', () => {
         const textarea = document.getElementById('code-area');
         textarea.value = (CURRENT_LANG === 'cpp') ? DEFAULT_CPP : DEFAULT_PYTHON;
+
+        const smartHintFunc = createSmartHint(CURRENT_LANG);
 
         editor = CodeMirror.fromTextArea(textarea, {
             mode: (CURRENT_LANG === 'cpp') ? 'text/x-c++src' : 'python',
@@ -263,11 +352,11 @@ else:
         // Tự động kích hoạt gợi ý thông minh khi đang gõ
         editor.on("inputRead", function(cm, change) {
             try {
-                if (change.text[0] && /[a-zA-Z0-9_\.]/.test(change.text[0])) {
-                    if (cm.showHint && CodeMirror.hint.anyword) {
+                if (change.text[0] && /[a-zA-Z0-9_\.\#\<]/.test(change.text[0])) {
+                    if (cm.showHint) {
                         cm.showHint({
                             completeSingle: false,
-                            hint: CodeMirror.hint.anyword
+                            hint: smartHintFunc
                         });
                     }
                 }
