@@ -156,7 +156,7 @@
             </button>
 
             <!-- Run Button (Nút chạy chính) -->
-            <button id="run-btn" onclick="renderOutput()" 
+            <button id="run-btn" onclick="renderOutput(true)" 
                     class="px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/25 flex items-center">
                 <i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>
             </button>
@@ -324,7 +324,7 @@
                 autoCloseBrackets: true,
                 matchBrackets: true,
                 matchTags: { bothTags: true },
-                viewportMargin: Infinity,
+                viewportMargin: 20, // Tối ưu DOM ảo mượt mà 60 FPS, chống giật lag hoàn toàn khi gõ
                 extraKeys: {
                     "Ctrl-Space": "autocomplete",
                     "Alt-Space": "autocomplete",
@@ -347,32 +347,41 @@
                 }
             });
 
-            // Tự động kích hoạt gợi ý thông minh khi đang gõ
+            // Tự động kích hoạt gợi ý thông minh có debounce chống giật màn hình
+            let hintDebounceTimer = null;
             editor.on("inputRead", function(cm, change) {
                 try {
-                    if (change.text[0] && /[a-zA-Z0-9_<\/\.\:]/.test(change.text[0])) {
-                        if (cm.showHint && (CodeMirror.hint.html || CodeMirror.hint.anyword)) {
-                            cm.showHint({
-                                completeSingle: false,
-                                hint: CodeMirror.hint.html || CodeMirror.hint.anyword
-                            });
-                        }
+                    if (cm.state.completionActive) return;
+                    const text = change.text[0];
+                    if (text && /[a-zA-Z0-9_<\/\.\:]/.test(text)) {
+                        clearTimeout(hintDebounceTimer);
+                        hintDebounceTimer = setTimeout(() => {
+                            if (cm.state.completionActive) return;
+                            if (cm.showHint && (CodeMirror.hint.html || CodeMirror.hint.anyword)) {
+                                cm.showHint({
+                                    completeSingle: false,
+                                    hint: CodeMirror.hint.html || CodeMirror.hint.anyword
+                                });
+                            }
+                        }, 120);
                     }
                 } catch (err) {
                     console.warn('Hint warning:', err);
                 }
             });
 
-            // Auto render on code change with debounce
+            // Tự động cập nhật preview êm ái khi dừng gõ, không làm giật khung soạn thảo
             let timer = null;
             editor.on('change', () => {
                 clearTimeout(timer);
-                timer = setTimeout(renderOutput, 600);
+                timer = setTimeout(() => {
+                    renderOutput(false);
+                }, 1200);
             });
 
             setTimeout(() => {
                 editor.refresh();
-                renderOutput();
+                renderOutput(false);
             }, 150);
 
         } catch (err) {
@@ -585,45 +594,38 @@
         URL.revokeObjectURL(url);
     }
 
-    function renderOutput() {
+    function renderOutput(isManual = false) {
         if (!editor) return;
         const code = editor.getValue();
         const iframe = document.getElementById('preview-iframe');
         if (!iframe) return;
 
-        // Feedback nút bấm chạy
-        const runBtn = document.getElementById('run-btn');
-        if (runBtn) {
-            runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang chạy...';
-            setTimeout(() => {
-                runBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>';
-            }, 300);
-        }
-
-        // Nếu đang ở chế độ xem Code Đầy Đủ mà bấm "Chạy Web", tự động chuyển sang chế độ chia đôi để thấy ngay kết quả
-        if (currentViewMode === 'code') {
-            setViewMode('split');
-        }
-
-        // Cập nhật iframe qua Blob URL an toàn và cách ly hoàn toàn
-        try {
-            const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
-            if (iframe._lastBlobUrl) {
-                URL.revokeObjectURL(iframe._lastBlobUrl);
+        // Chỉ hiển thị hiệu ứng nút và chuyển chế độ xem khi người dùng bấm nút "Chạy Web"
+        if (isManual) {
+            const runBtn = document.getElementById('run-btn');
+            if (runBtn) {
+                runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang chạy...';
+                setTimeout(() => {
+                    runBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>';
+                }, 250);
             }
-            const blobUrl = URL.createObjectURL(blob);
-            iframe._lastBlobUrl = blobUrl;
-            iframe.src = blobUrl;
+
+            // Nếu đang ở chế độ xem Code Đầy Đủ mà bấm "Chạy Web", tự động chuyển sang chế độ chia đôi
+            if (currentViewMode === 'code') {
+                setViewMode('split');
+            }
+        }
+
+        // Cập nhật mượt mà trực tiếp qua srcdoc: không reload iframe, không chớp giật
+        try {
+            iframe.srcdoc = code;
         } catch (e) {
-            // Fallback document.write
             try {
                 const doc = iframe.contentDocument || iframe.contentWindow.document;
                 doc.open();
                 doc.write(code);
                 doc.close();
-            } catch (err) {
-                iframe.srcdoc = code;
-            }
+            } catch (err) {}
         }
     }
 

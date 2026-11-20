@@ -342,23 +342,30 @@ else:
             indentWithTabs: false,
             autoCloseBrackets: true,
             matchBrackets: true,
-            viewportMargin: Infinity,
+            viewportMargin: 20, // Tối ưu DOM ảo mượt mà 60 FPS
             extraKeys: {
                 "Ctrl-Space": "autocomplete",
                 "Alt-Space": "autocomplete"
             }
         });
 
-        // Tự động kích hoạt gợi ý thông minh khi đang gõ
+        // Tự động kích hoạt gợi ý thông minh có debounce chống giật lag
+        let codeHintTimer = null;
         editor.on("inputRead", function(cm, change) {
             try {
-                if (change.text[0] && /[a-zA-Z0-9_\.\#\<]/.test(change.text[0])) {
-                    if (cm.showHint) {
-                        cm.showHint({
-                            completeSingle: false,
-                            hint: smartHintFunc
-                        });
-                    }
+                if (cm.state.completionActive) return;
+                const text = change.text[0];
+                if (text && /[a-zA-Z0-9_\.\#\<]/.test(text)) {
+                    clearTimeout(codeHintTimer);
+                    codeHintTimer = setTimeout(() => {
+                        if (cm.state.completionActive) return;
+                        if (cm.showHint) {
+                            cm.showHint({
+                                completeSingle: false,
+                                hint: smartHintFunc
+                            });
+                        }
+                    }, 100);
                 }
             } catch (err) {
                 console.warn('Hint warning:', err);
