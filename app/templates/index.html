@@ -124,15 +124,9 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
-                    {% if 'html' in p.allowed_languages %}
-                    <a href="/compile-html" title="Mở môi trường chạy thử HTML độc lập"
-                       class="inline-flex items-center font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2.5 py-1.5 rounded-xl transition-colors">
-                        <i class="fa-brands fa-html5 mr-1"></i> Chạy thử
-                    </a>
-                    {% endif %}
                     <a href="/problem/{{ p.code }}" 
-                       class="inline-flex items-center font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl transition-colors shadow-sm shadow-blue-500/20">
-                        Làm bài &amp; Chấm <i class="fa-solid fa-arrow-right ml-1.5 text-[10px]"></i>
+                       class="inline-flex items-center font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-all shadow-sm shadow-blue-500/20 hover:shadow-md">
+                        <span>Vào học &amp; Làm bài</span> <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
                     </a>
                 </div>
             </div>

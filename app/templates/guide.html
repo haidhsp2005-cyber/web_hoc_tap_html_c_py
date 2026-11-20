@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Hướng Dẫn Sử Dụng Hệ Thống - Themis Edu{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Hero Header -->
+    <div class="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl border border-indigo-800/50 relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/30 text-blue-200 border border-blue-400/30 mb-3">
+                <i class="fa-solid fa-book-bookmark mr-1.5"></i> Tài liệu hướng dẫn chính thức
+            </span>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-3">
+                Hướng Dẫn Sử Dụng Hệ Thống Themis Edu
+            </h1>
+            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                Nền tảng Web All-in-One hỗ trợ học tập, rèn luyện lập trình Web (HTML5/CSS3) và thuật toán (C++, Python 3) với cơ chế chấm điểm tự động chuẩn Themis, hiển thị công thức MathType/LaTeX và chấm lỗi cú pháp theo dòng.
+            </p>
+        </div>
+        <div class="hidden lg:block absolute -right-6 -bottom-6 opacity-15 text-white pointer-events-none">
+            <i class="fa-solid fa-graduation-cap text-[220px]"></i>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Pills -->
+    <div class="mb-8 flex flex-wrap gap-2 items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm sticky top-20 z-20">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center">
+            <i class="fa-solid fa-compass mr-1.5 text-blue-600"></i> Mục lục:
+        </span>
+        <a href="#tong-quan" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 transition-colors">
+            1. Tổng quan
+        </a>
+        <a href="#lap-trinh-web" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-orange-50 hover:text-orange-700 text-slate-700 transition-colors">
+            2. Lập trình Web (HTML/CSS)
+        </a>
+        <a href="#thuat-toan" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 transition-colors">
+            3. Thuật toán (C++ &amp; Python)
+        </a>
+        <a href="#che-do-hien-thi" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 transition-colors">
+            4. Chế độ màn hình &amp; Phím tắt
+        </a>
+        <a href="#giao-vien" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 transition-colors">
+            5. Dành cho Giáo viên (Up Themis)
+        </a>
+    </div>
+
+    <div class="space-y-8">
+
+        <!-- Phần 1: Tổng quan -->
+        <section id="tong-quan" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg shadow-sm">
+                    1
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">Tổng Quan Về Nền Tảng Themis Edu</h2>
+            </div>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                Themis Edu được thiết kế nhằm hiện đại hóa phương pháp dạy và học Tin học trong nhà trường phổ thông (đáp ứng chương trình GDPT 2018), giải quyết triệt để các hạn chế của phần mềm chấm offline truyền thống.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm mb-3 shadow-sm">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-sm mb-1">Chấm Tức Thì (Realtime)</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Chấm bài tự động qua Cloud Engine siêu tốc; học sinh biết ngay kết quả điểm số (thang 10.0đ), lỗi cú pháp và từng test case đạt/chưa đạt.
+                    </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-orange-50/60 border border-orange-100">
+                    <div class="w-8 h-8 rounded-xl bg-orange-600 text-white flex items-center justify-center text-sm mb-3 shadow-sm">
+                        <i class="fa-brands fa-html5"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-sm mb-1">Chấm Lập Trình Web Riêng Biệt</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Báo chính xác lỗi đóng/mở thẻ theo dòng câu lệnh, kiểm tra cấu trúc DOM, hiển thị Live Preview trực quan ngay trong trình duyệt.
+                    </p>
+                </div>
+                <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm mb-3 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-sm mb-1">Nạp File ZIP Themis 1 Chạm</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Giáo viên tận dụng 100% kho đề Themis sẵn có (.INP/.OUT trong Test01, Test02...) chỉ bằng cách nộp 1 file nén ZIP.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phần 2: Hướng dẫn Lập trình Web -->
+        <section id="lap-trinh-web" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-lg shadow-sm">
+                    2
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">Hướng Dẫn Làm Bài Lập Trình Web (HTML5 &amp; CSS3)</h2>
+            </div>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                Chuyên đề Lập trình Web giúp học sinh làm quen với việc thiết kế trang web cá nhân, bảng thời khóa biểu, biểu mẫu và danh sách.
+            </p>
+
+            <div class="space-y-4 text-sm text-slate-700">
+                <div class="flex items-start space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Bước 1: Chọn bài tập Web</strong>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Tại trang chủ, chọn chuyên đề <span class="font-semibold text-orange-600">"Lập trình Web - HTML &amp; CSS Cơ bản"</span> và bấm nút <strong>"Vào học &amp; Làm bài"</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Bước 2: Soạn thảo mã nguồn &amp; Xem trước giao diện</strong>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Gõ mã HTML/CSS vào khung bên trái. Khung bên phải sẽ tự động hiển thị trang web trực quan (Live Preview). Bạn có thể bấm nút <strong>"Chạy Web"</strong> để cập nhật ngay lập tức.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Bước 3: Kiểm tra lỗi cú pháp theo dòng</strong>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Nhấn nút <strong>"Kiểm tra lỗi dòng"</strong>: hệ thống sẽ quét từng thẻ HTML và báo rõ dòng mấy có thẻ chưa đóng hoặc sai thứ tự đóng lồng nhau.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                    <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Bước 4: Nộp bài chấm điểm</strong>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Nhấn nút <strong>"Nộp bài chấm điểm"</strong>. Hệ thống sẽ tự động chuyển sang tab <em>"Kết quả Chấm Điểm"</em> và hiển thị chi tiết số điểm đạt được (tối đa 10.0đ) kèm danh sách tiêu chí DOM đã đạt/chưa đạt.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phần 3: Hướng dẫn Thuật toán C++ & Python -->
+        <section id="thuat-toan" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg shadow-sm">
+                    3
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">Hướng Dẫn Học &amp; Chấm Thuật Toán (C++ &amp; Python 3)</h2>
+            </div>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                Áp dụng cho các chuyên đề cơ bản, rẽ nhánh, vòng lặp, mảng, số học và Quy hoạch động ôn thi HSG.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="p-4 rounded-2xl bg-slate-900 text-slate-200 border border-slate-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-code mr-1.5"></i> Cú pháp mẫu C++ (C++17 / GCC)
+                        </span>
+                    </div>
+                    <pre class="font-mono text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 text-emerald-400 overflow-x-auto leading-relaxed">#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    // freopen("BAI.INP", "r", stdin);
+    // freopen("BAI.OUT", "w", stdout);
+    long long a, b;
+    if (cin >> a >> b) {
+        cout << a + b << endl;
+    }
+    return 0;
+}</pre>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-900 text-slate-200 border border-slate-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center">
+                            <i class="fa-brands fa-python mr-1.5"></i> Cú pháp mẫu Python 3.14
+                        </span>
+                    </div>
+                    <pre class="font-mono text-xs bg-slate-950 p-3 rounded-xl border border-slate-800 text-amber-300 overflow-x-auto leading-relaxed">import sys
+
+def main():
+    data = sys.stdin.read().split()
+    if not data:
+        return
+    a, b = int(data[0]), int(data[1])
+    print(a + b)
+
+if __name__ == '__main__':
+    main()</pre>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-sm text-slate-700">
+                <div class="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 flex items-start space-x-3">
+                    <i class="fa-solid fa-keyboard text-blue-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Tính năng Chạy thử với dữ liệu tự chọn (Custom Input):</strong>
+                        <p class="text-xs text-slate-600 mt-0.5">
+                            Trước khi nộp bài chính thức, bạn có thể chuyển sang tab <em>"Dữ liệu vào (Input)"</em>, nhập bất kỳ dữ liệu thử nghiệm nào và nhấn <strong>"Chạy thử"</strong> để xem chương trình in ra gì, kiểm tra độ chính xác mà không bị trừ điểm.
+                        </p>
+                    </div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200 flex items-start space-x-3">
+                    <i class="fa-solid fa-gauge-high text-emerald-600 mt-1"></i>
+                    <div>
+                        <strong class="text-slate-900">Tốc độ chấm điểm siêu tốc qua Godbolt Compiler Explorer:</strong>
+                        <p class="text-xs text-slate-600 mt-0.5">
+                            Khi nhấn <strong>"Nộp bài chấm điểm"</strong>, hệ thống kích hoạt công nghệ chấm song song đa luồng qua máy chủ GCC 13.2 (-O2), chấm toàn bộ 10 test Themis chỉ trong <strong>1.5 đến 2.5 giây</strong>, phát hiện lỗi biên dịch trong 0.6 giây.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phần 4: Chế độ màn hình & Phím tắt -->
+        <section id="che-do-hien-thi" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg shadow-sm">
+                    4
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">Chế Độ Hiển Thị Màn Hình &amp; Phím Tắt Tiện Ích</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chế độ hiển thị -->
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center">
+                        <i class="fa-solid fa-desktop text-blue-600 mr-2"></i> Chế độ chuyển đổi giao diện:
+                    </h3>
+                    <ul class="space-y-2.5 text-xs text-slate-700">
+                        <li class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <strong class="text-blue-700">Khung Code Đầy Đủ (100% Full Width):</strong>
+                            Mở rộng tối đa không gian soạn thảo mã nguồn, ẩn khung xem trước để học sinh tập trung lập trình.
+                        </li>
+                        <li class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <strong class="text-slate-800">Chia đôi 50:50:</strong>
+                            Hiển thị song song cả trình soạn thảo code và khung xem trước/bảng điểm. Có thể kéo thanh trượt ở giữa để dãn rộng linh hoạt.
+                        </li>
+                        <li class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <strong class="text-emerald-700">Xem Web:</strong>
+                            Phóng to toàn bộ màn hình kết quả trang web để kiểm tra trực quan.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Bảng phím tắt -->
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center">
+                        <i class="fa-solid fa-keyboard text-amber-500 mr-2"></i> Bảng phím tắt hữu ích:
+                    </h3>
+                    <div class="overflow-hidden rounded-2xl border border-slate-200 text-xs">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5">Phím tắt</th>
+                                    <th class="p-2.5">Chức năng</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="p-2.5 font-mono font-bold text-blue-600">Ctrl + Space</td>
+                                    <td class="p-2.5 text-slate-600">Bật gợi ý gõ code thông minh (IntelliSense)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-mono font-bold text-blue-600">Ctrl + /</td>
+                                    <td class="p-2.5 text-slate-600">Bật / Tắt ghi chú dòng mã (Comment)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-mono font-bold text-blue-600">Ctrl + Z / Ctrl + Y</td>
+                                    <td class="p-2.5 text-slate-600">Hoàn tác (Undo) / Làm lại (Redo)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-mono font-bold text-blue-600">Ctrl + F</td>
+                                    <td class="p-2.5 text-slate-600">Tìm kiếm và thay thế trong mã nguồn</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phần 5: Dành cho Giáo viên -->
+        <section id="giao-vien" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-lg shadow-sm">
+                    5
+                </span>
+                <h2 class="text-xl font-bold text-slate-900">Dành Cho Giáo Viên &amp; Quản Trị Đề Bài (Up Themis)</h2>
+            </div>
+            <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                Giáo viên có thể dễ dàng khởi tạo đề bài mới, thiết lập giới hạn thời gian, công thức toán học và nạp nguyên bộ Test Themis chỉ với 1 thao tác kéo thả.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
+                <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-2">
+                    <h3 class="font-bold text-purple-900 text-sm flex items-center">
+                        <i class="fa-solid fa-file-zipper mr-1.5 text-purple-600"></i> Cấu trúc file ZIP Themis chuẩn:
+                    </h3>
+                    <p class="text-slate-600">
+                        File ZIP có thể nén trực tiếp các thư mục con <code>Test01</code>, <code>Test02</code>, ..., <code>Test10</code>:
+                    </p>
+                    <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-xl font-mono text-[11px] leading-relaxed">BAI_TAP.zip
+├── Test01/
+│   ├── BAI_TAP.INP
+│   └── BAI_TAP.OUT
+├── Test02/
+│   ├── BAI_TAP.INP
+│   └── BAI_TAP.OUT
+└── ...</pre>
+                    <p class="text-[11px] text-slate-500 italic">
+                        Hệ thống tự động nhận diện tên file INP/OUT không phân biệt hoa thường.
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center">
+                        <i class="fa-solid fa-square-root-variable mr-1.5 text-blue-600"></i> Hỗ trợ công thức Toán học MathType &amp; LaTeX:
+                    </h3>
+                    <p class="text-slate-600">
+                        Khi nhập nội dung đề bài, giáo viên có thể chèn công thức toán học dễ dàng:
+                    </p>
+                    <ul class="space-y-1.5 list-disc list-inside text-slate-600 font-mono text-[11px]">
+                        <li>Công thức trong dòng: <code>$1 \le N \le 10^5$</code></li>
+                        <li>Công thức phân số: <code>$\frac{a + b}{2}$</code></li>
+                        <li>Độ phức tạp thuật toán: <code>$O(N \log N)$</code></li>
+                        <li>Khối công thức hiển thị riêng: <code>$$S = \sum_{i=1}^N A_i$$</code></li>
+                    </ul>
+                    <p class="text-[11px] text-emerald-700 font-sans font-semibold">
+                        Công nghệ KaTeX &amp; MathJax 3 được tích hợp sẵn sẽ tự động render công thức sắc nét!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</div>
+{% endblock %}

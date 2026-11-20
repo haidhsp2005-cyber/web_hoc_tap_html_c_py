@@ -100,10 +100,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex-1 flex flex-col h-full w-full overflow-hidden bg-slate-900 min-h-0">
+<div class="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-900 w-full min-h-0 select-none">
 
     <!-- Action Toolbar (Responsive for Desktop & Mobile) -->
-    <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2.5 flex items-center justify-between text-white shadow-md z-10 shrink-0">
+    <div class="bg-slate-800 border-b border-slate-700 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between text-white shadow-md z-10 shrink-0 gap-2">
         <div class="flex items-center space-x-2 sm:space-x-3">
             <span class="w-8 h-8 rounded-xl bg-orange-600 flex items-center justify-center text-white text-sm shadow">
                 <i class="fa-brands fa-html5"></i>
@@ -114,34 +114,50 @@
             </div>
         </div>
 
+        <!-- Chế độ hiển thị: [Khung Code Đầy Đủ] | [Chia đôi 50:50] | [Xem Web] -->
+        <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700 space-x-1">
+            <button id="btn-mode-code" onclick="setViewMode('code')" title="Mở rộng khung bên trái đầy đủ toàn màn hình"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center">
+                <i class="fa-solid fa-code mr-1.5 text-blue-400"></i> <span class="hidden sm:inline">Khung Code</span> Đầy Đủ
+            </button>
+            <button id="btn-mode-split" onclick="setViewMode('split')" title="Chia đôi màn hình 50:50"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-700 shadow-sm transition-all flex items-center">
+                <i class="fa-solid fa-table-columns mr-1.5 text-slate-300"></i> Chia đôi
+            </button>
+            <button id="btn-mode-preview" onclick="setViewMode('preview')" title="Xem kết quả trang Web đầy đủ"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center">
+                <i class="fa-solid fa-desktop mr-1.5 text-emerald-400"></i> Xem Web
+            </button>
+        </div>
+
         <div class="flex items-center space-x-1.5 sm:space-x-2">
             <!-- Clear Button -->
             <button onclick="clearCode()" title="Xóa trắng mã nguồn"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/80 hover:bg-rose-600 text-white transition-colors">
-                <i class="fa-solid fa-trash-can sm:mr-1"></i> <span class="hidden sm:inline">Xóa trắng</span>
+                    class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/80 hover:bg-rose-600 text-white transition-colors">
+                <i class="fa-solid fa-trash-can sm:mr-1"></i> <span class="hidden md:inline">Xóa trắng</span>
             </button>
 
             <!-- Save File Button -->
             <button onclick="saveFile()" title="Tải file .html về máy"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
-                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden sm:inline">Lưu file .html</span>
+                    class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+                <i class="fa-solid fa-download sm:mr-1"></i> <span class="hidden md:inline">Lưu .html</span>
             </button>
 
             <!-- Reset Template Button -->
             <button onclick="resetTemplate()" title="Mẫu chuẩn"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
-                <i class="fa-solid fa-rotate-left sm:mr-1"></i> <span class="hidden sm:inline">Mẫu mới</span>
+                    class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors">
+                <i class="fa-solid fa-rotate-left sm:mr-1"></i> <span class="hidden md:inline">Mẫu mới</span>
             </button>
 
             <!-- Linter Button -->
             <button onclick="checkHtmlSyntax()" 
-                    class="px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 transition-colors shadow">
-                <i class="fa-solid fa-bug sm:mr-1"></i> <span class="hidden sm:inline">Kiểm tra lỗi dòng</span>
+                    class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 transition-colors shadow">
+                <i class="fa-solid fa-bug sm:mr-1"></i> <span class="hidden md:inline">Kiểm tra lỗi</span>
             </button>
 
-            <!-- Run Button -->
+            <!-- Run Button (Nút chạy chính) -->
             <button id="run-btn" onclick="renderOutput()" 
-                    class="px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/20 flex items-center">
+                    class="px-3.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-500/25 flex items-center">
                 <i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>
             </button>
         </div>
@@ -150,11 +166,21 @@
     <!-- Main Workspace: Split Editor & Preview with Draggable Resizer -->
     <div id="split-container" class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 w-full relative select-none">
 
-        <!-- Editor Pane -->
-        <div id="editor-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col min-h-0 overflow-hidden">
+        <!-- Editor Pane (Khung bên trái) -->
+        <div id="editor-pane" class="w-full md:w-1/2 h-full flex flex-col min-h-0 overflow-hidden bg-slate-900">
             <div class="bg-slate-800/90 px-4 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b border-slate-700/60 shrink-0">
-                <span><i class="fa-solid fa-code text-blue-400 mr-1.5"></i> Soạn thảo mã HTML & CSS</span>
-                <span class="text-[10px] text-slate-400 font-normal">Kéo thanh ở giữa để dãn rộng màn hình</span>
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-code text-blue-400"></i>
+                    <span>Soạn thảo mã HTML &amp; CSS</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="toggle-full-code-btn" onclick="toggleFullCode()" 
+                            class="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-slate-700 hover:bg-blue-600 text-slate-200 hover:text-white transition-colors"
+                            title="Bấm nút này để hiển thị khung bên trái đầy đủ 100% hoặc thu nhỏ lại">
+                        <i class="fa-solid fa-expand mr-1 text-[11px]" id="toggle-full-code-icon"></i>
+                        <span id="toggle-full-code-text">Hiển thị đầy đủ</span>
+                    </button>
+                </div>
             </div>
             <div class="flex-1 overflow-hidden relative min-h-0" id="editor-wrapper">
                 <textarea id="html-code-area"></textarea>
@@ -164,16 +190,24 @@
         <!-- Draggable Resizer Bar -->
         <div id="drag-resizer" class="resizer-bar-h shrink-0" title="Nhấn giữ và kéo để thay đổi kích thước khung"></div>
 
-        <!-- Preview Pane -->
-        <div id="preview-pane" class="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-white min-h-0 overflow-hidden">
+        <!-- Preview Pane (Khung bên phải) -->
+        <div id="preview-pane" class="w-full md:w-1/2 h-full flex flex-col bg-white min-h-0 overflow-hidden">
             <div class="bg-slate-100 px-4 py-1.5 text-[11px] font-bold text-slate-600 uppercase tracking-wider flex justify-between items-center border-b border-slate-200 shrink-0">
-                <span><i class="fa-solid fa-display text-emerald-600 mr-1.5"></i> Kết quả hiển thị (Live Preview)</span>
-                <button onclick="openInNewTab()" title="Mở trang toàn màn hình" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">
-                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở tab mới
-                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-display text-emerald-600"></i>
+                    <span>Kết quả hiển thị (Live Preview)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="setViewMode('code')" class="text-xs text-slate-600 hover:text-blue-600 font-semibold px-2 py-0.5 rounded hover:bg-slate-200 transition-colors" title="Quay lại khung soạn thảo đầy đủ">
+                        <i class="fa-solid fa-code mr-1"></i> Về soạn thảo
+                    </button>
+                    <button onclick="openInNewTab()" title="Mở trang toàn màn hình trong tab mới" class="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-0.5 rounded hover:bg-blue-50 transition-colors">
+                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở tab mới
+                    </button>
+                </div>
             </div>
             <div class="flex-1 relative bg-white overflow-hidden min-h-0 w-full h-full flex flex-col">
-                <iframe id="preview-iframe" class="w-full flex-1 border-0 block bg-white" style="width: 100%; height: 100%; min-height: 100%;"></iframe>
+                <iframe id="preview-iframe" class="w-full flex-1 border-0 block bg-white" style="width: 100%; height: 100%;"></iframe>
             </div>
 
             <!-- Error Notification Banner (Báo sai dòng mấy) -->
@@ -340,6 +374,90 @@
         initSplitResizer();
     });
 
+    // Quản lý chế độ hiển thị: 'code' (Khung code đầy đủ), 'split' (Chia đôi 50:50), 'preview' (Xem Web đầy đủ)
+    let currentViewMode = 'split';
+
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        const editorPane = document.getElementById('editor-pane');
+        const previewPane = document.getElementById('preview-pane');
+        const resizer = document.getElementById('drag-resizer');
+        const toggleBtnText = document.getElementById('toggle-full-code-text');
+        const toggleBtnIcon = document.getElementById('toggle-full-code-icon');
+
+        const btnCode = document.getElementById('btn-mode-code');
+        const btnSplit = document.getElementById('btn-mode-split');
+        const btnPreview = document.getElementById('btn-mode-preview');
+
+        if (mode === 'code') {
+            // Khung bên trái hiển thị ĐẦY ĐỦ 100%
+            editorPane.style.width = '100%';
+            editorPane.style.height = '100%';
+            editorPane.classList.remove('hidden');
+            previewPane.classList.add('hidden');
+            if (resizer) resizer.classList.add('hidden');
+
+            if (toggleBtnText) toggleBtnText.innerText = 'Thu nhỏ 50:50';
+            if (toggleBtnIcon) toggleBtnIcon.className = 'fa-solid fa-compress mr-1 text-[11px]';
+
+            if (btnCode) btnCode.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-blue-600 shadow-sm transition-all flex items-center";
+            if (btnSplit) btnSplit.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+            if (btnPreview) btnPreview.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+        } else if (mode === 'preview') {
+            // Khung bên phải xem Web hiển thị ĐẦY ĐỦ 100%
+            previewPane.style.width = '100%';
+            previewPane.style.height = '100%';
+            previewPane.classList.remove('hidden');
+            editorPane.classList.add('hidden');
+            if (resizer) resizer.classList.add('hidden');
+
+            if (toggleBtnText) toggleBtnText.innerText = 'Hiển thị đầy đủ';
+            if (toggleBtnIcon) toggleBtnIcon.className = 'fa-solid fa-expand mr-1 text-[11px]';
+
+            if (btnPreview) btnPreview.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-emerald-600 shadow-sm transition-all flex items-center";
+            if (btnCode) btnCode.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+            if (btnSplit) btnSplit.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+            renderOutput();
+        } else {
+            // Chế độ chia đôi 50:50
+            editorPane.classList.remove('hidden');
+            previewPane.classList.remove('hidden');
+            if (resizer) resizer.classList.remove('hidden');
+
+            if (window.innerWidth > 768) {
+                editorPane.style.width = '50%';
+                previewPane.style.width = '50%';
+                editorPane.style.height = '100%';
+                previewPane.style.height = '100%';
+            } else {
+                editorPane.style.width = '100%';
+                previewPane.style.width = '100%';
+                editorPane.style.height = '50%';
+                previewPane.style.height = '50%';
+            }
+
+            if (toggleBtnText) toggleBtnText.innerText = 'Hiển thị đầy đủ';
+            if (toggleBtnIcon) toggleBtnIcon.className = 'fa-solid fa-expand mr-1 text-[11px]';
+
+            if (btnSplit) btnSplit.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-white bg-slate-700 shadow-sm transition-all flex items-center";
+            if (btnCode) btnCode.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+            if (btnPreview) btnPreview.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center";
+        }
+
+        if (editor && editor.refresh) {
+            setTimeout(() => editor.refresh(), 60);
+        }
+    }
+
+    // Nút bấm chuyển đổi nhanh 1 chạm: Đầy đủ <-> Chia đôi 50:50
+    function toggleFullCode() {
+        if (currentViewMode === 'code') {
+            setViewMode('split');
+        } else {
+            setViewMode('code');
+        }
+    }
+
     function initSplitResizer() {
         const resizer = document.getElementById('drag-resizer');
         const editorPane = document.getElementById('editor-pane');
@@ -347,10 +465,17 @@
         const container = document.getElementById('split-container');
         let isDragging = false;
 
-        // Editor Pane & Preview Pane style
+        // Thiết lập ban đầu
         if (window.innerWidth > 768) {
             editorPane.style.width = '50%';
             previewPane.style.width = '50%';
+            editorPane.style.height = '100%';
+            previewPane.style.height = '100%';
+        } else {
+            editorPane.style.width = '100%';
+            previewPane.style.width = '100%';
+            editorPane.style.height = '50%';
+            previewPane.style.height = '50%';
         }
         resizer.addEventListener('mousedown', (e) => {
             isDragging = true;
@@ -450,8 +575,13 @@
         if (runBtn) {
             runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang chạy...';
             setTimeout(() => {
-                runBtn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> <span>Chạy Web</span>';
+                runBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> <span>Chạy Web</span>';
             }, 300);
+        }
+
+        // Nếu đang ở chế độ xem Code Đầy Đủ mà bấm "Chạy Web", tự động chuyển sang chế độ chia đôi để thấy ngay kết quả
+        if (currentViewMode === 'code') {
+            setViewMode('split');
         }
 
         // Cập nhật iframe qua Blob URL an toàn và cách ly hoàn toàn

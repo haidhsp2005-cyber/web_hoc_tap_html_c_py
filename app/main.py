@@ -137,6 +137,11 @@ async def teacher_page(request: Request):
         "problems": problems
     })
 
+@app.get("/guide", response_class=HTMLResponse)
+@app.get("/huong-dan", response_class=HTMLResponse)
+async def guide_page(request: Request):
+    return templates.TemplateResponse(request=request, name="guide.html", context={})
+
 # ==================== API ROUTES ====================
 
 class SubmitRequest(BaseModel):
