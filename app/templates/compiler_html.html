@@ -319,7 +319,7 @@
                     whenClosing: true,
                     whenOpening: true,
                     dontCloseTags: ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"],
-                    indentTags: false // TẮT tự động xuống dòng: Thẻ đóng và mở luôn cùng 1 dòng, chỉ khi nhấn Enter mới xuống dòng
+                    indentTags: ["__NEVER_AUTO_INDENT_TAG__"] // Tuyệt đối không tự ngắt dòng khi gõ thẻ! Thẻ mở & đóng luôn trên cùng 1 dòng
                 },
                 autoCloseBrackets: true,
                 matchBrackets: true,
@@ -327,7 +327,23 @@
                 viewportMargin: Infinity,
                 extraKeys: {
                     "Ctrl-Space": "autocomplete",
-                    "Alt-Space": "autocomplete"
+                    "Alt-Space": "autocomplete",
+                    "Enter": function(cm) {
+                        const cur = cm.getCursor();
+                        const line = cm.getLine(cur.line);
+                        const before = line.slice(0, cur.ch);
+                        const after = line.slice(cur.ch);
+                        const openMatch = before.match(/<([a-zA-Z0-9\-]+)[^>]*>$/);
+                        const closeMatch = after.match(/^<\/([a-zA-Z0-9\-]+)>/);
+                        if (openMatch && closeMatch && openMatch[1].toLowerCase() === closeMatch[1].toLowerCase()) {
+                            cm.replaceSelection("\n\n");
+                            cm.indentLine(cur.line + 1);
+                            cm.indentLine(cur.line + 2);
+                            cm.setCursor({ line: cur.line + 1, ch: cm.getLine(cur.line + 1).length });
+                            return;
+                        }
+                        cm.execCommand("newlineAndIndent");
+                    }
                 }
             });
 
